@@ -6,6 +6,60 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.3.0 (2026-09-30)
+
+Optional review-bot rounds for repositories where a bot such as Codex must approve
+each PR, and an hour of cache for workers. Untested with Foreman. The watcher was
+checked against two past rounds on two merged PRs.
+
+### Added
+- `review-bot.md`: lead rules that a repository loads only when it uses a review
+  bot. A PR merges only after the user's approval and a bot pass on its latest
+  push. There is a 5-round cap, and a finding the bot repeats after a decline goes
+  to the user.
+- `review-wait.sh`: a watcher the lead runs as a background Monitor. It checks
+  GitHub every minute and prints `findings <review ids>`, `passed <signal>` or
+  `timeout`. It counts only events after the latest trigger comment, and it
+  detects a pass by a 👍 on the PR, a 👍 on the trigger comment, or a "no issues"
+  comment or review.
+- `foreman-responder` (Opus 5.5, medium effort, 80-step cap): handles one round.
+  It reads findings per review, fixes or declines each one with evidence, replies
+  on every thread, resolves fixed threads, pushes and posts `@codex review`. The
+  `gh` commands are in its profile, so it doesn't rediscover them each round.
+- In `FOREMAN.md`, a Review bots section with the reasons for the split and the
+  steps to turn it on.
+
+### Changed
+- Setup step 4 now recommends `"subagentPromptCacheTtl": "1h"` on a subscription
+  too. On 30 Sep 2026 a test worker's cache writes came back as 1-hour writes
+  (8,796 and 2,171 tokens, none at 5 minutes), with no restart.
+- The cache comments in the builder, investigator and clerk profiles now refer to
+  that setting.
+- `version.sh` also stamps `review-bot.md`.
+
+### Upgrade from 0.2.0
+1. Add `"subagentPromptCacheTtl": "1h"` to `~/.claude/settings.json`.
+2. Copy `agents/foreman-*.md` to where you installed them, including the new
+   `foreman-responder.md`, and fill in its Project rules.
+3. In each repository that uses a review bot, add
+   `@~/Developer/harness/foreman/review-bot.md` to its `CLAUDE.md`.
+4. Start new sessions and run `./version.sh`.
+
+### To check when testing
+- Workers' cache writes show up as `ephemeral_1h_input_tokens` in their
+  transcripts, and rewrites after waits fall close to zero. Before: 14% of all
+  units went to rewrites after waits.
+- Each round costs one small responder. Its context stays near its starting size
+  and it never waits.
+- Rounds per PR, and findings fixed vs declined. Baseline: 11 rounds and 19
+  findings (3 declined) on one PR; 7 rounds on another.
+- The watcher never passes a stale 👍, and it restarts after every push.
+- The lead never reads findings, and each round adds only a few lines to its
+  context.
+
+### Results
+Not tested yet.
+
 ## 0.2.0 (2026-09-30)
 
 Four worker types instead of one, with a model and effort for each, and prompt

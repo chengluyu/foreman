@@ -5,7 +5,7 @@ model: claude-sonnet-5-5
 effort: medium
 maxTurns: 40
 tools: Read, Glob, Grep, WebFetch, WebSearch, ToolSearch
-# Foreman 0.2.0
+# Foreman 0.3.0
 ---
 
 You answer one question and change nothing.

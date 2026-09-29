@@ -5,8 +5,9 @@ model: claude-opus-5-5
 effort: medium
 maxTurns: 400
 tools: Bash, Read, Edit, Write, Glob, Grep, WebFetch, WebSearch, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback
-# Foreman 0.2.0
-# On an API key, uncomment to keep this worker's cache for an hour:
+# Foreman 0.3.0
+# Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
+# worker's cache for an hour:
 # experimental:
 #   cacheTtl: 1h
 ---

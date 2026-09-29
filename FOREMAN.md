@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.2.0. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.3.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.
@@ -15,7 +15,8 @@ merges.
 |---|---|
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
 | `lead.md` | The lead's rules, short enough to load into every lead session. |
-| `agents/foreman-*.md` | The four worker profiles: builder, investigator, clerk, scout. Copy them to `~/.claude/agents/`. |
+| `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. Copy them to `~/.claude/agents/`. |
+| `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `HANDOVER.md` | An empty handover. Copy it to a project's root and keep it out of git. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
@@ -32,9 +33,9 @@ Every rule below follows from five facts.
    but an agent makes hundreds of calls. A task costs roughly its number of calls
    times its average context. The context grows while the agent works, so a task
    twice as long costs more than twice as much.
-2. **The cache expires after a pause.** It lasts 5 minutes for workers. It lasts an
-   hour for the lead on a Claude subscription, but only 5 minutes on an API key
-   unless you change it. The first call after a longer pause writes the whole
+2. **The cache expires after a pause.** By default it lasts 5 minutes for workers.
+   It lasts an hour for the lead on a Claude subscription, but only 5 minutes on an
+   API key. Setup step 4 gives both an hour. The first call after a longer pause writes the whole
    context again at 1.25× or 2× the input price, which is 12 to 40 times the price
    of reading it.
 3. **Some actions throw the cache away mid-session:** switching models, turning on
@@ -88,6 +89,7 @@ PRs):
 | `foreman-investigator` | Find the cause of a bug, flaky test or odd behaviour | Cause, evidence and a fix brief; no PR | Opus 5.5, high | 150 |
 | `foreman-clerk` | Merges, conflicts, renumbering, merging approved PRs, full test runs | A 10-line report | Sonnet 5.5, medium | 150 |
 | `foreman-scout` | One factual question from the web, docs or code | 10 lines with sources | Sonnet 5.5, medium | 40 |
+| `foreman-responder` (optional) | One round of a review bot's findings on a PR | Fixes, replies and a new review request | Opus 5.5, medium | 80 |
 
 Why these four:
 - **Investigations run long and wait the most.** In one chat they took 7.6% of the
@@ -159,9 +161,10 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
 
 ## One-time setup
 
-1. Copy the four `agents/foreman-*.md` files to `~/.claude/agents/`, or to a
-   project's `.claude/agents/`. Edit each Project rules section: commit style, test
-   commands, merge method, anything that must never happen.
+1. Copy the `agents/foreman-*.md` files to `~/.claude/agents/`, or to a project's
+   `.claude/agents/`. Edit each Project rules section: commit style, test commands,
+   merge method, anything that must never happen. `foreman-responder` is needed
+   only with a review bot (see Review bots).
 2. Load the lead rules into lead sessions. Add this line to the project's
    `CLAUDE.md`:
    ```text
@@ -170,14 +173,18 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
    Or paste `lead.md` as the first message of a lead session.
 3. Copy `HANDOVER.md` to the project root. Keep it out of git with `.gitignore` or
    `.git/info/exclude`.
-4. On an API key, give both kinds of session an hour of cache (Claude Code 2.1.242
-   or later). In `~/.claude/settings.json`:
+4. Give workers an hour of cache (Claude Code 2.1.242 or later). In
+   `~/.claude/settings.json`:
    ```json
-   { "promptCacheTtl": "1h", "subagentPromptCacheTtl": "1h" }
+   { "subagentPromptCacheTtl": "1h" }
    ```
-   Replaying one project's chats at API prices, the default 5-minute lead cache
-   added 12% to the bill, and an hour for workers saved 13%. On a subscription the
-   lead already gets an hour.
+   On an API key, also add `"promptCacheTtl": "1h"` for the lead; a subscription
+   already gives the lead an hour. It works on a subscription too: on 30 Sep 2026 a
+   test worker's writes came back as 1-hour writes, with no restart. A 1-hour write
+   costs 2× the input price instead of 1.25×, but it survives waits of up to an
+   hour. Replaying one project's chats at API prices, an hour for workers saved 13%,
+   and the default 5-minute lead cache would have added 12%. The setting also
+   covers workflows and Claude Code's background helper requests.
 5. Start a new session to pick up the worker profiles, then check them with the
    smoke test prompt at the end of this guide.
 
@@ -254,6 +261,49 @@ Branch: <branch name, base, stacked or not>
   opening its PR fell from 52% to 8%.
 - Never resume a worker that has been idle for more than an hour. Its cache is gone
   and its context is large; a fresh worker is cheaper.
+
+## Review bots (optional)
+
+Some repositories require a review bot, such as OpenAI's Codex reviewer, to approve
+each PR. Each round works like this: the bot posts findings, someone fixes or
+declines each one and replies on its thread, then comments `@codex review`. This
+repeats until the bot reacts 👍, sometimes also posting that it found no major
+issues. In one session that took 11 rounds on one PR (19 findings, 3 declined) and
+7 on another. Each round took 10–15 minutes from request to verdict.
+
+Foreman splits each round three ways:
+- **A watcher waits.** `review-wait.sh` checks GitHub every minute and prints one
+  line, `findings <review ids>`, `passed <signal>` or `timeout`, then exits. The
+  lead runs it as a background Monitor, so waiting costs no tokens. It counts only
+  events after the latest trigger comment, so an old 👍 never passes a new push.
+- **A fresh responder per round.** It reads that round's findings, fixes or
+  declines each one, replies, resolves the fixed threads, pushes and posts
+  `@codex review`. It starts small and never waits, so no round pays a cache
+  rewrite, and its context doesn't pile up over the rounds. The replies and the open
+  declined threads on GitHub carry the history between rounds.
+- **The lead only dispatches.** It never reads the findings itself.
+
+Why not let the builder loop? It would wait 10–15 minutes a round, with a context
+that grows every round. On the default 5-minute cache that is a full rewrite each
+round.
+
+Rules, in `review-bot.md`:
+- A PR merges only after your approval and a pass on its latest push. Any push,
+  including fixes for your feedback, needs another round.
+- Rounds start as soon as the PR opens, in parallel with your review.
+- After 5 rounds, or when the bot repeats a finding the responder declined, the
+  lead stops and lists the open threads for you.
+
+To turn it on in a repository:
+1. Add a second line to its `CLAUDE.md`, under the lead.md one:
+   ```text
+   @~/Developer/harness/foreman/review-bot.md
+   ```
+2. If the bot isn't Codex, or you want another round cap, say so in the same
+   `CLAUDE.md`, below that line: the bot, its trigger comment, and `BOT` and
+   `PASS_TEXT` for the watcher.
+3. Install `agents/foreman-responder.md`, fill in its Project rules, and make sure
+   `gh` is signed in.
 
 ## The lead's context
 

@@ -5,7 +5,7 @@ model: claude-opus-5-5
 effort: medium
 maxTurns: 400
 tools: Bash, Read, Edit, Write, Glob, Grep, WebFetch, WebSearch, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback
-# Foreman 0.3.0
+# Foreman 0.4.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:
@@ -83,11 +83,9 @@ every Chrome or Chromium launch must pass `--use-mock-keychain
 
 ## Project rules
 
-Replace this list with the project's own rules:
-- Commit messages: one line, `type(scope): summary`.
-- Stage your files explicitly and never commit unrelated changes; other agents work
-  in this repo at the same time.
-- Test commands: `<type check>`, `<unit tests>`, `<one e2e spec>`.
+Follow the project's CLAUDE.md and the Rules at the end of your brief; where they
+disagree, the brief wins. Stage your files explicitly and never commit unrelated
+changes; other agents work in this repo at the same time.
 
 ## Report
 

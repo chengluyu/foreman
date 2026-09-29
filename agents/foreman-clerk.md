@@ -5,7 +5,7 @@ model: claude-sonnet-5-5
 effort: medium
 maxTurns: 150
 tools: Bash, Read, Edit, Write, Glob, Grep, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback
-# Foreman 0.3.0
+# Foreman 0.4.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:
@@ -71,10 +71,9 @@ every Chrome or Chromium launch must pass `--use-mock-keychain
 
 ## Project rules
 
-Replace this list with the project's own rules:
-- Commit messages: one line, `type(scope): summary`.
-- Merge method for approved PRs: `<squash / merge>`.
-- Test commands: `<type check>`, `<build>`, `<unit tests>`, `<full suite>`.
+Follow the project's CLAUDE.md and the Rules at the end of your brief; where they
+disagree, the brief wins. Stage your files explicitly and never commit unrelated
+changes; other agents work in this repo at the same time.
 
 ## Report
 

@@ -16,8 +16,15 @@ the title of lead.md>
 
 ## Standing rules
 
-<The user's preferences a new lead must follow: agent limits, merge rules, what
-never to do. Point to memory or docs instead of copying long rules here.>
+Foreman settings for this repository (the /foreman skill reads the first three):
+- Review bot: none
+- Sonnet workers: allowed
+- Builder: foreman-builder
+- Worker rules, copied into every brief:
+  - <commit style, test commands, anything that must never happen>
+
+<Other preferences a new lead must follow: agent limits, merge rules, what never
+to do. Point to memory or docs instead of copying long rules here.>
 
 ## Running now
 

@@ -5,7 +5,7 @@ model: claude-opus-5-5
 effort: medium
 maxTurns: 80
 tools: Bash, Read, Edit, Write, Glob, Grep, ToolSearch, SendMessage, SubagentHandback
-# Foreman 0.3.0
+# Foreman 0.4.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:
@@ -74,10 +74,10 @@ no visible browser windows, no interactive commands.
 
 ## Project rules
 
-Replace this list with the project's own rules:
-- Commit messages: one line, `type(scope): summary`.
-- Anything that must never appear in commits, comments or branch names.
-- Test commands: `<type check>`, `<unit tests>`.
+Follow the project's CLAUDE.md and the Rules at the end of your brief; where they
+disagree, the brief wins. That includes anything that must never appear in
+commits, replies or comments. Stage your files explicitly and never commit
+unrelated changes.
 
 ## Report
 

@@ -6,6 +6,61 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.4.0 (2026-09-30)
+
+Foreman works in any repository with one command and no per-project files. Untested
+in a real lead session. The start script was checked in a scratch repository with a
+worktree.
+
+### Added
+- `/foreman` skill (`skills/foreman/SKILL.md`), installed once in
+  `~/.claude/skills/`. It runs the start script, loads `lead.md` into the session,
+  and has the lead read the handover and report in five lines. `/foreman <task>`
+  passes a first request. Claude Code re-attaches the skill after compaction, so
+  the lead keeps its rules. Only you can run it (`disable-model-invocation`).
+- `foreman-start.sh`: finds the repository's main checkout through
+  `git worktree list`, so every worktree session uses the same `HANDOVER.md`. On
+  first use it creates the handover from the template and adds it to
+  `.git/info/exclude`. It prints the handover's Foreman settings, and appends
+  `review-bot.md` when the handover names a review bot.
+- Foreman settings in the handover's Standing rules: `Review bot`, `Sonnet
+  workers`, `Builder`, and worker rules. On first use the lead asks for them and
+  offers guesses from the repository's CLAUDE.md.
+
+### Changed
+- Every brief ends with Rules, the worker rules copied from the handover. Workers
+  can't see the lead's memory.
+- The worker profiles' Project rules sections no longer hold template
+  placeholders, including a commit style that applied to every project. Workers
+  follow the project's CLAUDE.md and the Rules in their brief; the brief wins when
+  they disagree.
+- The lead passes `model: "opus"` to clerks and scouts when the handover says
+  Sonnet workers aren't allowed, and uses the builder the handover names.
+- `lead.md` says where the handover lives. `review-bot.md` is switched on by the
+  handover instead of a CLAUDE.md import.
+- Setup is once per machine. There is no CLAUDE.md import, and no handover to copy
+  per project.
+- `version.sh` also stamps and checks the skill.
+
+### Upgrade from 0.3.0
+1. Copy `agents/foreman-*.md` to `~/.claude/agents/`, and `skills/foreman/` to
+   `~/.claude/skills/foreman/`.
+2. Remove any `@~/Developer/harness/foreman/*.md` lines you added to a CLAUDE.md;
+   `/foreman` loads those files now.
+3. Run `./version.sh`.
+
+### To check when testing
+- `/foreman` in a worktree session finds the handover in the main checkout, and
+  `git status` there stays clean.
+- After a compaction, the lead still follows its rules without re-reading anything.
+- Every brief ends with the worker rules. In repositories with no-trace rules, no
+  branch, commit or comment names an agent.
+- With `Sonnet workers: not allowed`, clerks and scouts run on Opus.
+- With `Review bot: Codex`, the lead starts the watcher when a builder opens a PR.
+
+### Results
+Not tested yet.
+
 ## 0.3.0 (2026-09-30)
 
 Optional review-bot rounds for repositories where a bot such as Codex must approve

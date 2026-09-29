@@ -1,10 +1,10 @@
-# Foreman 0.3.0: review-bot rounds (optional)
+# Foreman 0.4.0: review-bot rounds (optional)
 
-Load this, next to lead.md, only in repositories where a review bot must approve a
-PR before it merges.
+These rules apply because the handover's Standing rules name a review bot: this
+repository's PRs merge only after the bot approves them.
 
 ## Settings
-These are the defaults; the repository's CLAUDE.md can override them.
+These are the defaults; the handover's Standing rules can override them.
 - Bot: Codex. Trigger comment: `@codex review`.
 - Watcher: `~/Developer/harness/foreman/review-wait.sh`. For another bot, set
   `BOT` and `PASS_TEXT` in its environment.
@@ -17,7 +17,7 @@ These are the defaults; the repository's CLAUDE.md can override them.
   30-minute timeout: `review-wait.sh OWNER/REPO PR`. After each trigger comment,
   start it again with the comment's ID as a third argument.
 - On `findings <ids>`, send a `foreman-responder` with the repository, PR, branch,
-  worktree and review IDs. Don't read the findings yourself. When it reports
+  worktree, review IDs and the worker rules. Don't read the findings yourself. When it reports
   `trigger <id>`, restart the watcher with that ID.
 - On `passed`, record it in HANDOVER.md and tell the user the PR has passed.
 - On `timeout`, restart the watcher once. If it times out again, tell the user.

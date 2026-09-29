@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.3.0. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.4.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.
@@ -14,10 +14,12 @@ merges.
 | File | What it is |
 |---|---|
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
-| `lead.md` | The lead's rules, short enough to load into every lead session. |
+| `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. Copy the folder to `~/.claude/skills/`. |
+| `foreman-start.sh` | Run by `/foreman`: finds the repository's handover, creates it on first use, and reads its settings. |
+| `lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. Copy them to `~/.claude/agents/`. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
-| `HANDOVER.md` | An empty handover. Copy it to a project's root and keep it out of git. |
+| `HANDOVER.md` | The handover template. `/foreman` copies it into each repository on first use. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
 
@@ -35,9 +37,9 @@ Every rule below follows from five facts.
    twice as long costs more than twice as much.
 2. **The cache expires after a pause.** By default it lasts 5 minutes for workers.
    It lasts an hour for the lead on a Claude subscription, but only 5 minutes on an
-   API key. Setup step 4 gives both an hour. The first call after a longer pause writes the whole
-   context again at 1.25× or 2× the input price, which is 12 to 40 times the price
-   of reading it.
+   API key. Setup step 2 gives both an hour. The first call after a longer pause
+   writes the whole context again at 1.25× or 2× the input price, which is 12 to 40
+   times the price of reading it.
 3. **Some actions throw the cache away mid-session:** switching models, turning on
    fast mode, connecting or removing an MCP server, enabling a plugin that brings
    MCP servers, denying a whole tool, compacting, and upgrading Claude Code.
@@ -161,19 +163,19 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
 
 ## One-time setup
 
-1. Copy the `agents/foreman-*.md` files to `~/.claude/agents/`, or to a project's
-   `.claude/agents/`. Edit each Project rules section: commit style, test commands,
-   merge method, anything that must never happen. `foreman-responder` is needed
-   only with a review bot (see Review bots).
-2. Load the lead rules into lead sessions. Add this line to the project's
-   `CLAUDE.md`:
-   ```text
-   @~/Developer/harness/foreman/lead.md
+Once per machine; nothing is needed per project.
+
+1. Install the worker profiles and the `/foreman` command:
+   ```bash
+   cp ~/Developer/harness/foreman/agents/foreman-*.md ~/.claude/agents/
    ```
-   Or paste `lead.md` as the first message of a lead session.
-3. Copy `HANDOVER.md` to the project root. Keep it out of git with `.gitignore` or
-   `.git/info/exclude`.
-4. Give workers an hour of cache (Claude Code 2.1.242 or later). In
+   ```bash
+   mkdir -p ~/.claude/skills/foreman && cp ~/Developer/harness/foreman/skills/foreman/SKILL.md ~/.claude/skills/foreman/
+   ```
+   The profiles hold no project rules. Workers follow the project's `CLAUDE.md`
+   and the Rules at the end of each brief, which the lead copies from the
+   handover.
+2. Give workers an hour of cache (Claude Code 2.1.242 or later). In
    `~/.claude/settings.json`:
    ```json
    { "subagentPromptCacheTtl": "1h" }
@@ -185,13 +187,36 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
    hour. Replaying one project's chats at API prices, an hour for workers saved 13%,
    and the default 5-minute lead cache would have added 12%. The setting also
    covers workflows and Claude Code's background helper requests.
-5. Start a new session to pick up the worker profiles, then check them with the
+3. Start a new session to pick up the worker profiles, then check them with the
    smoke test prompt at the end of this guide.
+
+## Starting a lead session
+
+In any repository, start a new session and type:
+```text
+/foreman
+```
+or `/foreman <what to work on first>`. The command:
+- finds the repository's main checkout, which every worktree shares, and its
+  `HANDOVER.md`. On first use it creates the file from the template and keeps it
+  out of git through `.git/info/exclude`;
+- loads `lead.md` into the session, and `review-bot.md` too when the handover names
+  a review bot;
+- has the lead read the handover and tell you in five lines where things stand.
+
+After a compaction, Claude Code re-attaches the command's content, so the lead keeps
+its rules. The first time in a repository, the lead asks for the handover's
+Standing rules, the repository's Foreman settings:
+- `Review bot`: `none`, or `Codex` to load the review-bot rules.
+- `Sonnet workers`: `allowed`, or `not allowed` to run clerks and scouts on Opus.
+- `Builder`: `foreman-builder`, or a project's own builder profile.
+- Worker rules, which the lead copies into every brief: commit style, test commands,
+  and anything that must never happen, such as agent names in branches or commits.
 
 ## The daily loop
 
-1. Start a lead session from `HANDOVER.md` (prompt below). Pick the model and
-   effort now and keep them for the session.
+1. Start a lead session with `/foreman`. Pick the model and effort now and keep
+   them for the session.
 2. Say what you want. The lead splits it into tasks, writes the briefs and tells
    you the plan in a few lines.
 3. The lead sends workers out. Tasks that edit the same busy files wait for each
@@ -295,15 +320,12 @@ Rules, in `review-bot.md`:
   lead stops and lists the open threads for you.
 
 To turn it on in a repository:
-1. Add a second line to its `CLAUDE.md`, under the lead.md one:
-   ```text
-   @~/Developer/harness/foreman/review-bot.md
-   ```
-2. If the bot isn't Codex, or you want another round cap, say so in the same
-   `CLAUDE.md`, below that line: the bot, its trigger comment, and `BOT` and
-   `PASS_TEXT` for the watcher.
-3. Install `agents/foreman-responder.md`, fill in its Project rules, and make sure
-   `gh` is signed in.
+1. Set `- Review bot: Codex` in the handover's Standing rules. The next `/foreman`
+   loads the rules; in a running session, tell the lead to read `review-bot.md`.
+2. If the bot isn't Codex, or you want another round cap, say so in the Standing
+   rules too: the bot, its trigger comment, and `BOT` and `PASS_TEXT` for the
+   watcher.
+3. Make sure `gh` is signed in. The responder profile is installed with the others.
 
 ## The lead's context
 
@@ -352,6 +374,9 @@ Keep-alive check-ins aren't worth setting up.
   One lead read two old chats in 15 calls and carried the extra 36k tokens through
   166 later calls, about 1.0M units in all. A 5k-token handover would have cost
   about 0.1M.
+- **One handover per repository, in its main checkout.** Sessions in the app run in
+  their own worktrees, so a relative `HANDOVER.md` would be a different file each
+  time. `/foreman` prints the absolute path, and the lead always uses it.
 - **Keep `HANDOVER.md` under about 5k tokens,** because every line is re-read on
   every call. Record state, not history: what is running, open PRs, the queue,
   decisions waiting on you, standing rules.
@@ -384,31 +409,29 @@ makes the next estimates better; story points added nothing here.
 
 Foreman changes as you test it, so every measurement needs to say which version it
 measured.
-- `VERSION` holds the current version. `lead.md`, this guide and each worker
-  profile carry it as "Foreman x.y.z", so an installed copy shows which version it
-  is. The lead writes the version into `HANDOVER.md`.
+- `VERSION` holds the current version. `lead.md`, `review-bot.md`, this guide, the
+  `/foreman` skill and each worker profile carry it as "Foreman x.y.z", so an
+  installed copy shows which version it is. The lead writes the version into
+  `HANDOVER.md`.
 - Until 1.0.0, any change that can alter behaviour or cost (a rule, a prompt, a
   model, an effort level, a step cap) bumps the minor version: 0.2.0 to 0.3.0.
   Fixes to wording or figures that change nothing bump the patch version: 0.2.0 to
   0.2.1. Call the first version you have tested and kept 1.0.0.
 - To release a change, run `./version.sh bump 0.3.0`, add an entry to
-  `CHANGELOG.md`, commit, and tag the commit `v0.3.0`. Then copy the profiles to
-  where you installed them and start new sessions. `git diff v0.2.0 v0.3.0` shows
-  exactly what changed between two tested versions. Profiles load when a session starts, so a running session keeps the
-  old version.
-- Run `./version.sh` before a test to find stale installed copies. Pass a project's
-  `.claude/agents` folder to check that too.
+  `CHANGELOG.md`, commit, and tag the commit `v0.3.0`. Then copy the profiles and
+  the skill to where you installed them, and start new sessions. `git diff v0.2.0
+  v0.3.0` shows exactly what changed between two tested versions. Profiles load
+  when a session starts, so a running session keeps the old version. `/foreman`
+  reads `lead.md`, `review-bot.md` and the scripts from this folder, so those take
+  effect at the next `/foreman`.
+- Run `./version.sh` before a test to find stale installed copies of the profiles
+  and the skill. Pass a project's `.claude/agents` folder to check that too.
 - Compare versions on whole days of work with the checks under Measuring, and
   write the results into the version's changelog entry.
 
 ## Prompts
 
-Start a lead session:
-```text
-You are the lead for this project. Follow lead.md. Read HANDOVER.md and nothing
-from previous chats; search an old transcript only if you need one specific fact.
-Tell me in five lines what is running, what waits on me, and what you plan next.
-```
+Start a lead session: `/foreman`, or `/foreman <what to work on first>`.
 
 Night shift (compact the lead first if it is over about 170k):
 ```text

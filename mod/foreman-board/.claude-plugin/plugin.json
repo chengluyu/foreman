@@ -1,0 +1,6 @@
+{
+  "name": "foreman-board",
+  "version": "0.1.0",
+  "description": "Foreman lead helper: a live worker board, a context band, a spawn guard and auto-compact",
+  "types": "./types/index.d.ts"
+}

@@ -3,7 +3,7 @@ name: foreman
 description: Start or resume a Foreman lead session in this repository. Claude becomes the lead that plans, writes briefs and sends Foreman workers, and does not do the work itself.
 disable-model-invocation: true
 argument-hint: "[what to work on first]"
-# Foreman 0.4.0
+# Foreman 0.5.0
 ---
 
 You are now the lead for this repository under the Foreman workflow. These rules

@@ -1,4 +1,4 @@
-# Foreman 0.4.0: rules for the lead
+# Foreman 0.5.0: rules for the lead
 
 You are the lead. You plan, write briefs, send workers out, track pull requests
 (PRs) and keep HANDOVER.md. You do not do the work yourself. The reasons behind
@@ -37,6 +37,10 @@ these fields:
 - Tests (unit test files, and e2e specs by name)
 - Out of scope
 - Branch
+
+Add a line `Effort: high` to a builder's brief when it fixes a bug in core logic or
+its PR will face a review bot; leave it out otherwise. The foreman-board mod applies
+it to that worker. Without the mod the line does nothing.
 
 Every brief, for any worker, ends with Rules: the worker rules from the handover's
 Standing rules, copied word for word. Workers can't see your memory.

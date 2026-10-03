@@ -6,6 +6,47 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.5.0 (2026-10-03)
+
+Effort follows Anthropic's "Spending your effort" post, and an optional mod watches
+the workers. The mod loaded in one session and its two commands answered; the
+board, guard, effort line and auto-compact are untested with real workers.
+
+### Added
+- `mod/foreman-board/`: a Claude Code mod for lead sessions with a context band, a
+  worker board, a spawn guard, per-brief effort and auto-compact. See "The
+  foreman-board mod" in `FOREMAN.md`.
+- A brief line `Effort: high` sets one worker's effort, applied by the mod.
+- Optional handover setting `- Max workers: N` (default 5), read by the mod's guard.
+
+### Changed
+- `foreman-responder` runs at `high` effort, up from `medium`. A review-bot finding
+  is a bug fix in existing code, and in the first run 15 of 22 PRs used all 5
+  rounds at `medium`. Expect each round to cost more and, if it works, fewer rounds.
+- `lead.md` tells the lead when to add `Effort: high` to a builder's brief.
+- `version.sh` also stamps the mod.
+
+### Upgrade from 0.4.0
+1. Copy `agents/foreman-*.md` to `~/.claude/agents/`.
+2. Optional: add `mod/foreman-board` to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block
+   of `~/.claude/settings.json`.
+3. Run `./version.sh`.
+
+### To check when testing
+- Review rounds per PR at `high` against the 0.4.0 run (15 of 22 PRs at the cap),
+  and the cost per round against about $0.63.
+- A builder with `Effort: high` in its brief shows `builder high` on the board.
+- The guard refuses a sixth worker and a brief without Rules.
+- Auto-compact fires after a turn above 200k, also while workers keep waking the
+  lead, and the lead keeps its rules and worker list afterwards.
+
+### Results of the 0.4.0 run (2026-10-02)
+- About $170 at API prices for 7 hours, 118 workers, 93 of them review rounds.
+- Worked: no cache rewrites, workers started at about 10k tokens, none above 223k.
+- Did not work: the lead reached 809k tokens before its first compaction and took
+  41% of the cost; `/compact` typed mid-turn arrived as plain text; each worker
+  woke the lead twice; the lead posted 126 messages.
+
 ## 0.4.0 (2026-09-30)
 
 Foreman works in any repository with one command and no per-project files. Untested

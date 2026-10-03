@@ -1,0 +1,23 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "foreman",
+  "version": "0.1.0",
+  "description": "Plan coding work, write task briefs, coordinate available workers, track pull requests, and keep a compact project handover.",
+  "author": { "name": "Foreman" },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Foreman",
+        "shortDescription": "Coordinate coding work",
+        "longDescription": "A skills-based adaptation of Foreman 0.4.0. Keep a small lead context, give each worker one bounded task, separate investigation from implementation, batch review feedback, require human merge approval, and resume from current project state. Uses the host's available repository and worker tools. This draft does not include a project-board app, MCP server, or hosted worker runtime.",
+        "developerName": "Foreman",
+        "category": "Productivity",
+        "defaultPrompt": [
+          "Start Foreman for this project. Read the handover and show what is running, ready for review, and waiting on me.",
+          "Turn this request into small tasks with complete worker briefs. Show dependencies and work that can run in parallel.",
+          "Prepare a handover for the next session: running work, open pull requests, the queue, decisions, and standing rules."
+        ]
+      }
+    }
+  }
+}

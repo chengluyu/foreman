@@ -1,0 +1,10 @@
+{
+  "plugin_id": "plugins_6abe2f4afff88191a5f0169a0b15cc81",
+  "release_id": "pluginrel_6abe2f4ded988191b6c86fc4674e98b6",
+  "plugin_url": "https://chatgpt.com/plugins/plugins_6abe2f4afff88191a5f0169a0b15cc81",
+  "scope": "USER",
+  "discoverability": "PRIVATE",
+  "version": "0.1.0",
+  "archive": "foreman-0.1.0.zip",
+  "status": "created"
+}

@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.4.0. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.5.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.
@@ -19,6 +19,7 @@ merges.
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. Copy them to `~/.claude/agents/`. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
+| `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a context band, a spawn guard, per-brief effort and auto-compact. See "The foreman-board mod". |
 | `HANDOVER.md` | The handover template. `/foreman` copies it into each repository on first use. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
@@ -91,7 +92,7 @@ PRs):
 | `foreman-investigator` | Find the cause of a bug, flaky test or odd behaviour | Cause, evidence and a fix brief; no PR | Opus 5.5, high | 150 |
 | `foreman-clerk` | Merges, conflicts, renumbering, merging approved PRs, full test runs | A 10-line report | Sonnet 5.5, medium | 150 |
 | `foreman-scout` | One factual question from the web, docs or code | 10 lines with sources | Sonnet 5.5, medium | 40 |
-| `foreman-responder` (optional) | One round of a review bot's findings on a PR | Fixes, replies and a new review request | Opus 5.5, medium | 80 |
+| `foreman-responder` (optional) | One round of a review bot's findings on a PR | Fixes, replies and a new review request | Opus 5.5, high | 80 |
 
 Why these four:
 - **Investigations run long and wait the most.** In one chat they took 7.6% of the
@@ -143,7 +144,16 @@ Effort, per Anthropic's model guides:
   before the work is finished. At `xhigh` and `max` it starts review rounds nobody
   asked for.
 - Effort lives in the profile. The Agent tool can override a worker's model for one
-  task, but not its effort, so a different effort needs a separate profile.
+  task, but not its effort. The foreman-board mod can: a brief line `Effort: high`
+  sets that worker's effort. Without the mod, a different effort needs a separate
+  profile.
+- Effort changes how much a worker verifies and tests edge cases; it doesn't fix a
+  wrong approach, which the brief decides (Anthropic, "Spending your effort"). So:
+  `medium` for feature work, `high` for bug fixes in existing code. The responder
+  runs at `high`, because each review-bot finding is such a fix: in the first run,
+  15 of 22 PRs used all 5 review rounds at `medium`. A builder gets `high` per
+  brief, for fixes in core logic and PRs that will face a review bot. The lead stays
+  at `medium`; higher effort makes it do more work itself.
 
 What the profiles take from the guides:
 - **"Finish the job."** Opus 5.5 sometimes ends a long task with a report that
@@ -228,6 +238,29 @@ Standing rules, the repository's Foreman settings:
    time.
 7. At the end of the day, or before any break longer than an hour, follow Breaks
    and nights below.
+
+## The foreman-board mod
+
+Optional, and early access: it needs Claude Code 2.1.286 or later, and the mod API
+may change. It runs inside the lead's session and does five things:
+- **Band:** one line above the prompt with the lead's context, workers running and
+  done, their estimated cost, and a count of workers with warnings.
+- **Board** (`/foreman-board`, opened by `/foreman`): each worker's steps against
+  its cap, context, cost, age and last command, with warnings for a context over
+  150k, 80% of the step cap, 4 quiet minutes or a command repeated 3 times. It also
+  lists review rounds per PR.
+- **Spawn guard:** refuses a `foreman-*` worker when the limit is already running
+  (5, or `- Max workers: N` in the handover's Standing rules) or when its brief has
+  no Rules section although the handover has worker rules. It moves clerks and
+  scouts to Opus when Sonnet workers aren't allowed.
+- **Effort per brief:** applies a brief's `Effort:` line to that worker.
+- **Auto-compact:** after a turn that ends above 200k tokens, it compacts the lead
+  between turns, keeping the handover path, running workers, PRs and open
+  decisions. `/foreman-autocompact off`, `on` or `250k` changes it.
+
+To load it in every session, add its folder to `CLAUDE_CODE_PLUGIN_DIRS` in the
+`env` block of `~/.claude/settings.json`. It acts only on `foreman-*` workers, and
+auto-compact only in a session that ran `/foreman`.
 
 ## Briefs
 

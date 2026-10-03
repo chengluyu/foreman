@@ -5,7 +5,7 @@ model: claude-sonnet-5-5
 effort: medium
 maxTurns: 150
 tools: Bash, Read, Edit, Write, Glob, Grep, ToolSearch, Monitor, TaskStop, SendMessage, SubagentHandback
-# Foreman 0.4.0
+# Foreman 0.5.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:

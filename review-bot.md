@@ -1,4 +1,4 @@
-# Foreman 0.4.0: review-bot rounds (optional)
+# Foreman 0.5.0: review-bot rounds (optional)
 
 These rules apply because the handover's Standing rules name a review bot: this
 repository's PRs merge only after the bot approves them.

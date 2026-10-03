@@ -2,10 +2,10 @@
 name: foreman-responder
 description: Handles one round of a review bot's findings on a PR (for example Codex). Checks each finding against the code, fixes the valid ones, declines the rest with evidence, replies on every thread, resolves the fixed threads, pushes, and asks the bot to review again. Give it the repository, PR number, branch, worktree, the review IDs from the watcher, and the trigger comment text if not `@codex review`.
 model: claude-opus-5-5
-effort: medium
+effort: high
 maxTurns: 80
 tools: Bash, Read, Edit, Write, Glob, Grep, ToolSearch, SendMessage, SubagentHandback
-# Foreman 0.4.0
+# Foreman 0.5.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:

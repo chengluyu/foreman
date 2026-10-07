@@ -5,7 +5,7 @@ model: claude-opus-5-5
 effort: high
 maxTurns: 80
 tools: Bash, Read, Edit, Write, Glob, Grep, ToolSearch, SendMessage, SubagentHandback
-# Foreman 0.5.0
+# Foreman 0.6.0
 # Without "subagentPromptCacheTtl": "1h" in settings.json, uncomment to keep this
 # worker's cache for an hour:
 # experimental:

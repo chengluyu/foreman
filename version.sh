@@ -8,7 +8,7 @@
 set -eu
 dir=$(cd "$(dirname "$0")" && pwd)
 v=$(cat "$dir/VERSION")
-stamped="$dir/lead.md $dir/review-bot.md $dir/FOREMAN.md $dir/agents/foreman-*.md $dir/skills/foreman/SKILL.md $dir/mod/foreman-board/hooks/register.tsx"
+stamped="$dir/lead.md $dir/review-bot.md $dir/FOREMAN.md $dir/agents/foreman-*.md $dir/skills/foreman/SKILL.md $dir/skills/foreman-create/SKILL.md $dir/skills/foreman-resume/SKILL.md $dir/mod/foreman-board/hooks/register.tsx"
 pattern='Foreman [0-9]+\.[0-9]+\.[0-9]+'
 
 stamp_of() { grep -Eo "$pattern" "$1" | head -n 1; }
@@ -25,7 +25,7 @@ if [ "${1:-check}" = bump ]; then
 fi
 
 [ "${1:-}" = check ] && shift
-files="$stamped $HOME/.claude/agents/foreman-*.md $HOME/.claude/skills/foreman/SKILL.md"
+files="$stamped $HOME/.claude/agents/foreman-*.md $HOME/.claude/skills/foreman*/SKILL.md"
 for d in "$@"; do files="$files $d/foreman-*.md"; done
 status=0
 for f in $files; do

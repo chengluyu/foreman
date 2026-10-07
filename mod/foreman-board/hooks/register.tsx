@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Lead, BoardSettings, Worker } from '../types'
 
-// Foreman 0.5.0 helper: a live board of the lead's workers, a one-line band with the
+// Foreman 0.6.0 helper: a live board of the lead's workers, a one-line band with the
 // lead's context, a guard on worker spawns, per-brief effort, and auto-compact for the lead.
 
 const PANE = 'foreman-board'
@@ -80,8 +80,10 @@ async function loadSettings($: EngineInterface) {
     const wt = await $.process.run(['git', 'worktree', 'list', '--porcelain'])
     const root = /^worktree (.+)$/m.exec(wt.stdout)?.[1]
     if (root) {
-      const text = await $.fs.read(`${root}/HANDOVER.md`)
-      s.handover = `${root}/HANDOVER.md`
+      const shared = `${root}/handovers/_shared.md`
+      const file = (await $.fs.exists(shared)) ? shared : `${root}/HANDOVER.md`
+      const text = await $.fs.read(file)
+      s.handover = file
       const sonnet = /^- Sonnet workers:\s*(.*)$/m.exec(text)?.[1] ?? ''
       s.isSonnetAllowed = !/not allowed|never|no\b/i.test(sonnet)
       const max = /^- Max workers:\s*(\d+)/m.exec(text)?.[1]

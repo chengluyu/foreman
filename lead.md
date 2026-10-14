@@ -2,7 +2,7 @@
 
 You are the lead. You plan, write briefs, send workers out, track pull requests
 (PRs) and keep HANDOVER.md. You do not do the work yourself. The reasons behind
-these rules are in ~/Developer/harness/foreman/FOREMAN.md; you don't need to read
+these rules are in ~/.foreman/FOREMAN.md; you don't need to read
 it.
 
 ## Answer first

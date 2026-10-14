@@ -12,12 +12,12 @@ hold for the rest of the session, including after compaction.
 ## This repository
 
 ```!
-~/Developer/harness/foreman/foreman-start.sh
+~/.foreman/foreman-start.sh
 ```
 
 ## Your rules
 
-!`cat ~/Developer/harness/foreman/lead.md`
+!`cat ~/.foreman/lead.md`
 
 ## Start
 

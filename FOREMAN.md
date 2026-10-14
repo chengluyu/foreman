@@ -178,12 +178,11 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
 
 Once per machine; nothing is needed per project.
 
-1. Install the worker profiles and the `/foreman` command:
+1. Clone Foreman to `~/.foreman`, where its skills read their files from, or
+   link your clone there with `ln -s /path/to/your/foreman ~/.foreman`. Then
+   install the worker profiles and the commands:
    ```bash
-   cp ~/Developer/harness/foreman/agents/foreman-*.md ~/.claude/agents/
-   ```
-   ```bash
-   mkdir -p ~/.claude/skills/foreman && cp ~/Developer/harness/foreman/skills/foreman/SKILL.md ~/.claude/skills/foreman/
+   cp -R ~/.foreman/skills/* ~/.claude/skills/ && cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/
    ```
    The profiles hold no project rules. Workers follow the project's `CLAUDE.md`
    and the Rules at the end of each brief, which the lead copies from the

@@ -15,16 +15,16 @@ first request. If there is no topic word, ask which topic and stop.
 ## This repository
 
 ```!
-~/Developer/harness/foreman/foreman-start.sh rules
+~/.foreman/foreman-start.sh rules
 ```
 
 ## Your rules
 
-!`cat ~/Developer/harness/foreman/lead.md`
+!`cat ~/.foreman/lead.md`
 
 ## Start
 
-1. Run `~/Developer/harness/foreman/foreman-start.sh resume TOPIC` once, with the topic word
+1. Run `~/.foreman/foreman-start.sh resume TOPIC` once, with the topic word
    (lowercase letters, digits and dashes only; never put the request in the
    command). It prints your handover path and the shared rules path. If its output
    starts with STOP, tell the user what it says, offer the right command, and do

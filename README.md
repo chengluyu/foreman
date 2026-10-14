@@ -114,22 +114,23 @@ what to check when testing, and what was measured.
 
 ## Setting it up
 
-You need Claude Code. The files refer to themselves at
-`~/Developer/harness/foreman`, so clone there, or change the paths in
-`skills/foreman/SKILL.md`, `lead.md` and `review-bot.md`.
+You need Claude Code. Foreman's skills read their files from `~/.foreman`, so
+clone it there:
 
 ```bash
-git clone https://github.com/chengluyu/foreman.git ~/Developer/harness/foreman
+git clone https://github.com/chengluyu/foreman.git ~/.foreman
 ```
 
-Install the worker profiles and the command:
+If you keep your clone somewhere else, link it to that name:
 
 ```bash
-cp ~/Developer/harness/foreman/agents/foreman-*.md ~/.claude/agents/
+ln -s /path/to/your/foreman ~/.foreman
 ```
 
+Install the commands and the worker profiles:
+
 ```bash
-mkdir -p ~/.claude/skills/foreman && cp ~/Developer/harness/foreman/skills/foreman/SKILL.md ~/.claude/skills/foreman/
+cp -R ~/.foreman/skills/* ~/.claude/skills/ && cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/
 ```
 
 Give workers the one-hour cache in `~/.claude/settings.json`:

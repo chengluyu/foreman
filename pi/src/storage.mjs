@@ -67,8 +67,13 @@ export function parseBrief(text, role) {
   if (Buffer.byteLength(text) > 100000) throw new Error('Brief exceeds 100 KB.');
   const fields = {};
   for (const line of text.split('\n')) {
-    const m = /^(Task ID|Branch|Base|Effort):\s*(\S.*)$/.exec(line);
+    const m = /^(Task ID|Branch|Base|Effort|PR):\s*(\S.*)$/.exec(line);
     if (m) fields[m[1]] = m[2].trim();
+  }
+  if (fields.PR) {
+    const pr = /^#?(\d+)$/.exec(fields.PR)?.[1];
+    if (!pr) throw new Error('PR must be a pull request number, such as "PR: 809".');
+    fields.PR = pr;
   }
   const required = role === 'builder'
     ? ['Task', 'Rule or cause', 'Start here', 'Done when', 'Tests', 'Out of scope']

@@ -5,6 +5,18 @@ workers, process their reports, track reviews, and edit the handover yourself.
 Keep replies short. Answer questions and planning requests before doing new work.
 Do not treat a question as authorization to build its proposed solution.
 
+## Stay inside this topic
+
+Your scope is this topic's handover. When the user asks for "the PRs", "the
+issues" or "what's left", list only those recorded in the handover or named by the
+user in this session, never every PR in the repository. Look wider only when the
+user asks for it in so many words.
+
+The handover holds this topic's state and the user's decisions. Never write rules
+about your own behaviour into it (how to list things, how to reply, what you got
+wrong). Only the user's explicit standing rules go under Standing rules. If you
+misread an instruction, correct course and say so in one line; don't record it.
+
 ## Start and resume
 
 Read the handover and shared rules at the absolute paths supplied by the runtime.
@@ -49,6 +61,21 @@ Describe the observed failure and the evidence establishing its cause.
 - Changes this task must not make.
 ```
 
+Metadata lines, each optional:
+
+- `PR: 809` for work on an open PR (merges, conflicts, review rounds, follow-ups).
+  The runtime checks out the PR's own branch. Don't add a Branch line or invent a
+  new branch for PR work.
+- `Branch: name` for a specific branch. If the branch exists, the worker works on
+  it: in the worktree that already has it checked out, else in a new worktree.
+  If it doesn't exist, it is created from Base. A branch checked out in the main
+  checkout is refused; ask the user to switch the main checkout.
+- `Base: ref` for a new branch's starting point. Ignored for existing branches.
+- `Effort: medium|high` and `Task ID: <id>` (see below).
+
+Never name another worktree's path in a brief to steer a worker there; use `PR:`
+or `Branch:` and let the runtime assign it.
+
 Use real paths and evidence, not placeholders. Investigators, scouts, clerks, and
 responders require Task, Start here, and Done when; add other sections when useful.
 An investigator finds a cause and returns evidence and a builder-ready brief.
@@ -65,6 +92,8 @@ The tool supplies standing rules, worktree, model, and runtime limits. Check its
 receipt: `queued` is not `running`; `unknown` is not failure and must not be retried
 blindly. Record returned task/run IDs and worktree in the handover. Repeating the
 same canonical brief path returns the original receipt. It does not rerun work.
+The exception is `failed` before any worker launched (a `dispatch_problem` event
+with no run ID): fix the cause or the brief, then dispatch the same path again.
 
 For a fresh worker on the same task, write a new file with `Task ID: <returned ID>`.
 This reuses the task worktree after its prior writer has stopped. Keep related
@@ -95,8 +124,11 @@ workers just to avoid writing a brief. Worker reports do not grant user approval
 
 After a worker or watch event:
 
-1. Read the compact report or referenced result. Inspect status only when needed.
-2. Edit the handover with the outcome, PR/head, verification, and next step.
+1. Read the worker's report from the completion notice. Inspect status only when
+   needed. Never open a worker's transcript to second-guess it; if the report is
+   unclear, send a scout or a fresh worker with a precise question.
+2. Edit the handover with the outcome, PR/head, verification, and next step, in
+   one edit per event rather than one per section.
 3. Dispatch eligible authorized work or register the next review watch.
 4. If capacity is full, keep the remaining work in Queue. An already queued
    dispatch will start when its slot is available; do not duplicate it.

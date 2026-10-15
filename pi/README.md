@@ -153,6 +153,7 @@ Builder briefs need nonempty `## Task`, `## Rule or cause`, `## Start here`,
 here, and Done when. Optional metadata lines are:
 
 ```text
+PR: 809
 Branch: fix/downloads
 Base: origin/main
 Effort: high
@@ -161,9 +162,24 @@ Task ID: <existing-task-id-for-a-follow-up>
 
 Omit Task ID for new work. Use a new brief file for every fresh execution.
 Repeated dispatch of the same canonical path returns the original receipt;
-editing a dispatched file does not change its immutable snapshot. Explicitly
-steer running workers. New tasks default to a unique branch from the current
-main checkout's `HEAD`; specify Base when another commit/ref is intended.
+editing a dispatched file does not change its immutable snapshot. The one
+exception is a dispatch that failed before any worker launched: fix the brief or
+the cause and dispatch the same path again. Explicitly steer running workers.
+
+Where the worker works:
+
+- `PR: N` checks out that open PR's branch (via `gh pr view`). Fork PRs are refused.
+- `Branch:` naming an existing branch uses it. If another worktree has it checked
+  out, the worker works in that worktree, and the brief snapshot lists any
+  uncommitted files already there. Otherwise a new worktree checks out the local
+  branch, or tracks `origin/BRANCH`. A branch checked out in the main checkout is
+  refused.
+- Otherwise the task gets a new branch (named by `Branch:` or generated) from Base,
+  which defaults to the main checkout's `HEAD`.
+
+Each role has a tool-call budget (soft/hard): builder 150/250, investigator 80/120,
+clerk 60/120, responder 50/80, scout 20/40. At the soft limit pi-subagents blocks
+further exploration; at the hard limit it stops the worker.
 
 ## Runtime PR watches
 

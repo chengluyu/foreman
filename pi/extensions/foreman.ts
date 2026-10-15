@@ -161,7 +161,7 @@ export default async function foreman(pi: any) {
     ctx.abort(); footer(); ctx.ui.notify('Foreman stopped. Check status for confirmed worker and process exits. Worktrees retained.', 'info');
   } });
 
-  pi.registerTool({ name: 'foreman_dispatch', label: 'Foreman dispatch', description: 'Launch or queue one worker from a saved Markdown brief. Repeated paths return the original receipt.',
+  pi.registerTool({ name: 'foreman_dispatch', label: 'Foreman dispatch', description: 'Launch or queue one worker from a saved Markdown brief. Repeated paths return the original receipt, unless that dispatch failed before a worker launched: then fix the brief and call again.',
     parameters: Type.Object({ role: Type.Union(ROLES.map((r: string) => Type.Literal(r))), briefPath: Type.String() }),
     async execute(_id: string, args: any, _signal: any, _update: any, ctx: any) {
       const r = requireRuntime(); r.model = ctx.model;

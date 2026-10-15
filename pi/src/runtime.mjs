@@ -79,32 +79,69 @@ export class ForemanRuntime {
     if (this.closed || this.state.mode !== 'active') throw new Error('Foreman is paused or stopped.');
     if (!ROLES.includes(role) || !path.isAbsolute(briefPath)) throw new Error('Choose a supported role and absolute Markdown brief path.');
     const canonical = fs.realpathSync(briefPath);
-    const id = digest(canonical);
-    if (this.state.jobs[id]) return this.state.jobs[id];
+    // A brief that failed before any worker launched may be fixed and sent again.
+    // Anything that reached pi-subagents keeps its receipt.
+    const attempts = Object.values(this.state.jobs).filter(j => j.briefPath === canonical);
+    const last = attempts.at(-1);
+    if (last && !(last.state === 'failed' && !last.runId)) return last;
+    const id = digest(attempts.length ? `${canonical}#${attempts.length + 1}` : canonical);
     const text = fs.readFileSync(canonical, 'utf8');
     const fields = parseBrief(text, role);
     const prior = fields['Task ID'] && Object.values(this.state.jobs).find(j => j.taskId === fields['Task ID']);
     if (fields['Task ID'] && !prior) throw new Error('Unknown Task ID in brief.');
-    const branch = prior?.branch || fields.Branch || `foreman/${this.topic}-${id.slice(0, 8)}`;
+    const prBranch = !prior && fields.PR ? await this.prBranch(fields.PR) : undefined;
+    if (prBranch && fields.Branch && fields.Branch !== prBranch) throw new Error(`PR ${fields.PR} is on branch ${prBranch}, not ${fields.Branch}. Drop the Branch line.`);
+    const branch = prior?.branch || prBranch || fields.Branch || `foreman/${this.topic}-${id.slice(0, 8)}`;
     await command('git', ['check-ref-format', '--branch', branch], this.root);
-    const baseRef = fields.Base || this.config.baseRef || 'HEAD';
-    const baseCommit = await command('git', ['rev-parse', '--verify', `${baseRef}^{commit}`], this.root);
+    const taskId = prior?.taskId || `${this.topic}-${id.slice(0, 8)}`;
+    const found = prior ? { checkout: 'task', worktree: prior.worktree }
+      : prBranch || fields.Branch ? await this.locateBranch(branch, !!prBranch) : { checkout: 'new' };
+    const worktree = found.worktree || path.join(this.root, '.foreman/worktrees', taskId);
+    const baseRef = found.checkout === 'new' ? (fields.Base || this.config.baseRef || 'HEAD') : (found.ref || branch);
+    const baseCommit = await command('git', ['rev-parse', '--verify', `${baseRef}^{commit}`], found.checkout === 'new' ? this.root : (found.worktree || this.root));
     const model = this.model ? `${this.model.provider}/${this.model.id}` : undefined;
     if (!model) throw new Error('Select a lead model before dispatching.');
     const jobDir = path.join(this.dir, 'runs', id);
     fs.mkdirSync(jobDir, { recursive: true });
-    const taskId = prior?.taskId || `${this.topic}-${id.slice(0, 8)}`;
-    const worktree = prior?.worktree || path.join(this.root, '.foreman/worktrees', taskId);
-    const effective = `${text}\n\n## Runtime assignment\nTask ID: ${taskId}\nRepository: ${this.root}\nWorktree: ${worktree}\nBranch: ${branch}\nBase commit: ${baseCommit}\n\n## Standing worker rules (verbatim)\n${this.rules()}\n`;
+    const dirty = found.worktree ? (await command('git', ['status', '--porcelain'], found.worktree)).split('\n').filter(Boolean).length : 0;
+    const origin = { new: `new branch from ${baseCommit}`, local: `existing branch at ${baseCommit}`, remote: `existing remote branch at ${baseCommit}`,
+      reuse: `existing worktree, branch at ${baseCommit}`, task: `this task's worktree, branch at ${baseCommit}` }[found.checkout];
+    const effective = `${text}\n\n## Runtime assignment\nTask ID: ${taskId}\nRepository: ${this.root}\nWorktree: ${worktree}\nBranch: ${branch} (${origin})\n${fields.PR ? `PR: ${fields.PR}\n` : ''}${dirty ? `Uncommitted files already in the worktree: ${dirty}. They are not yours; preserve them.\n` : ''}Work only in this worktree, even if the brief mentions another path.\n\n## Standing worker rules (verbatim)\n${this.rules()}\n`;
     const snapshot = path.join(jobDir, 'brief.md');
     writeNew(snapshot, effective);
     const job = { id, taskId, role, briefPath: canonical, snapshot, branch, worktree, baseCommit, model,
+      ...(fields.PR ? { pr: fields.PR } : {}), checkout: found.checkout, ...(found.ref ? { remoteRef: found.ref } : {}),
       effort: fields.Effort || (['investigator', 'responder'].includes(role) ? 'high' : 'medium'),
-      state: 'queued', createdAt: Date.now(), existingWorktree: !!prior,
+      state: 'queued', createdAt: Date.now(), existingWorktree: !!found.worktree,
       telemetryPath: path.join(jobDir, 'usage.json'), readyPath: path.join(jobDir, 'ready.json') };
     this.state.jobs[id] = job; this.save();
     await this.drain();
     return job;
+  }
+  async prBranch(pr) {
+    const info = JSON.parse(await command('gh', ['pr', 'view', String(pr), '--json', 'headRefName,isCrossRepository,state'], this.root));
+    if (info.isCrossRepository) throw new Error(`PR ${pr} comes from a fork; Foreman only works on branches in this repository.`);
+    if (info.state !== 'OPEN') throw new Error(`PR ${pr} is ${info.state.toLowerCase()}.`);
+    return info.headRefName;
+  }
+  // Where an existing branch lives decides how the worker gets it: reuse the
+  // worktree that has it checked out, else check out the local or remote branch.
+  async locateBranch(branch, mustExist) {
+    const list = await command('git', ['worktree', 'list', '--porcelain'], this.root);
+    for (const block of list.split('\n\n')) {
+      const lines = block.split('\n');
+      const dir = lines.find(l => l.startsWith('worktree '))?.slice('worktree '.length);
+      if (!dir || !lines.includes(`branch refs/heads/${branch}`)) continue;
+      if (!fs.existsSync(dir)) throw new Error(`Branch ${branch} belongs to a missing worktree at ${dir}. Run \`git worktree prune\`, then dispatch again.`);
+      if (fs.realpathSync(dir) === fs.realpathSync(this.root)) throw new Error(`Branch ${branch} is checked out in the main checkout. Switch the main checkout to another branch, then dispatch again.`);
+      return { checkout: 'reuse', worktree: fs.realpathSync(dir) };
+    }
+    const exists = async ref => { try { await command('git', ['rev-parse', '--verify', '--quiet', `${ref}^{commit}`], this.root); return true; } catch { return false; } };
+    if (await exists(`refs/heads/${branch}`)) return { checkout: 'local' };
+    try { await command('git', ['fetch', '--quiet', 'origin', `refs/heads/${branch}:refs/remotes/origin/${branch}`], this.root, 60000); } catch {}
+    if (await exists(`refs/remotes/origin/${branch}`)) return { checkout: 'remote', ref: `origin/${branch}` };
+    if (mustExist) throw new Error(`Branch ${branch} was not found locally or on origin.`);
+    return { checkout: 'new' };
   }
   async drain() {
     if (this.draining || this.closed || this.state.mode !== 'active') return;
@@ -120,7 +157,9 @@ export class ForemanRuntime {
         try {
           if (!job.existingWorktree) {
             fs.mkdirSync(path.dirname(job.worktree), { recursive: true });
-            await command('git', ['worktree', 'add', '-b', job.branch, job.worktree, job.baseCommit], this.root, 60000);
+            const args = { local: [job.worktree, job.branch], remote: ['--track', '-b', job.branch, job.worktree, job.remoteRef] }[job.checkout]
+              || ['-b', job.branch, job.worktree, job.baseCommit];
+            await command('git', ['worktree', 'add', ...args], this.root, 60000);
           }
           const current = await command('git', ['branch', '--show-current'], job.worktree);
           if (current !== job.branch) throw new Error('Assigned worktree is on a different branch.');

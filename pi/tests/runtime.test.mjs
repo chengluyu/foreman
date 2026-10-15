@@ -42,6 +42,50 @@ test('dispatch snapshots Markdown, inherits K3, and repeated paths never relaunc
   assert.equal((await r.dispatch('builder', file)).runId, job.runId);
   assert.equal(launches.length, 1); assert.match(fs.readFileSync(job.snapshot, 'utf8'), /Do one thing/);
 });
+test('a branch checked out in another worktree reuses that worktree', async t => {
+  const { r, root, write } = await fixture(t);
+  const other = path.join(root, '..', path.basename(root) + '-other');
+  await command('git', ['worktree', 'add', '-q', '-b', 'feat/existing', other], root);
+  t.after(() => fs.rmSync(other, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(other, 'wip.txt'), 'x');
+  const job = await r.dispatch('clerk', write('a', brief('Branch: feat/existing')));
+  assert.equal(job.state, 'running'); assert.equal(job.checkout, 'reuse');
+  assert.equal(job.worktree, fs.realpathSync(other));
+  assert.match(fs.readFileSync(job.snapshot, 'utf8'), /Uncommitted files already in the worktree: 1/);
+});
+test('an existing local branch is checked out without creating it again', async t => {
+  const { r, root, write } = await fixture(t);
+  await command('git', ['branch', 'feat/local'], root);
+  const job = await r.dispatch('clerk', write('a', brief('Branch: feat/local')));
+  assert.equal(job.state, 'running'); assert.equal(job.checkout, 'local');
+  assert.equal(await command('git', ['branch', '--show-current'], job.worktree), 'feat/local');
+});
+test('a branch in the main checkout is refused with a clear reason', async t => {
+  const { r, root, write } = await fixture(t);
+  const current = await command('git', ['branch', '--show-current'], root);
+  await assert.rejects(r.dispatch('clerk', write('a', brief(`Branch: ${current}`))), /checked out in the main checkout/);
+});
+test('PR metadata resolves its head branch', async t => {
+  const { r, root, write } = await fixture(t);
+  await command('git', ['branch', 'feat/pr-head'], root);
+  r.prBranch = async pr => { assert.equal(pr, '809'); return 'feat/pr-head'; };
+  const job = await r.dispatch('clerk', write('a', brief('PR: #809')));
+  assert.equal(job.branch, 'feat/pr-head'); assert.equal(job.pr, '809');
+  assert.match(fs.readFileSync(job.snapshot, 'utf8'), /PR: 809/);
+});
+test('a brief that failed before launch can be fixed and dispatched again', async t => {
+  const { r, root, write, launches } = await fixture(t);
+  await command('git', ['branch', 'taken'], root);
+  const file = write('a', brief('Branch: taken'));
+  r.locateBranch = async () => ({ checkout: 'new' }); // simulate a branch created after dispatch
+  const failed = await r.dispatch('builder', file);
+  assert.equal(failed.state, 'failed'); assert.equal(launches.length, 0);
+  delete r.locateBranch;
+  fs.writeFileSync(file, brief('Branch: fresh'));
+  const retry = await r.dispatch('builder', file);
+  assert.notEqual(retry.id, failed.id); assert.equal(retry.state, 'running'); assert.equal(retry.branch, 'fresh');
+  assert.equal((await r.dispatch('builder', file)).id, retry.id);
+});
 test('terminal event releases capacity and starts the next authorized brief', async t => {
   const { r, write, launches } = await fixture(t);
   const a = await r.dispatch('builder', write('a'));

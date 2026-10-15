@@ -14,6 +14,15 @@ export function rpc(pi, method, params = {}, timeoutMs = 10000) {
     pi.events.emit('subagents:rpc:v1:request', { version: 1, requestId, method, params, source: { extension: 'pi-foreman' } });
   });
 }
+// Tool calls per worker, matching the step limits in the role profiles. At the
+// soft limit pi-subagents blocks further exploration; at the hard limit it stops.
+export const BUDGETS = {
+  builder: { soft: 150, hard: 250 },
+  investigator: { soft: 80, hard: 120 },
+  clerk: { soft: 60, hard: 120 },
+  responder: { soft: 50, hard: 80 },
+  scout: { soft: 20, hard: 40 },
+};
 export function subagentAdapter(pi, packageRoot) {
   const registrations = [];
   return {
@@ -34,7 +43,7 @@ export function subagentAdapter(pi, packageRoot) {
       registrations.push(request.result.registration);
       return rpc(pi, 'spawn', { agent: name, task, cwd: job.worktree, model: job.model,
         thinking: job.effort, context: 'fresh', async: true, timeoutMs: 3600000,
-        toolBudget: { soft: job.role === 'scout' ? 30 : 120, hard: job.role === 'scout' ? 50 : 180 } }, 90000);
+        toolBudget: BUDGETS[job.role] }, 90000);
     },
     stop(id) { return rpc(pi, 'stop', { id }); },
     close() { for (const registration of registrations) registration.dispose(); },

@@ -1,4 +1,4 @@
-# Foreman 0.5.0: rules for the lead
+# Foreman 0.6.0: rules for the lead
 
 You are the lead. You plan, write briefs, send workers out, track pull requests
 (PRs) and keep HANDOVER.md. You do not do the work yourself. The reasons behind
@@ -72,12 +72,18 @@ Standing rules, copied word for word. Workers can't see your memory.
   - Follow the night rules: only tasks that need no decision, at most 2 workers,
     each stopping at its PR. Leave any worker a usage limit stops for the morning.
 
-## HANDOVER.md
-- It lives in the repository's main checkout, which every worktree shares; the
-  /foreman skill prints its path. Always use that absolute path.
-- Its Standing rules hold this repository's Foreman settings. When the user
-  changes one, update it there.
-- Update it after each PR opens or merges, after each decision, and before breaks.
+## Handovers
+- They live in the repository's main checkout, which every worktree shares; the
+  start script prints the paths. Always use those absolute paths.
+- A repository with topics has one handover per topic plus `_shared.md`. Read your
+  topic and `_shared.md`. Update only your own topic's file. Never read another
+  topic's handover; if work crosses topics, tell the user.
+- Standing rules hold this repository's Foreman settings (in `_shared.md`, or in
+  `HANDOVER.md` for a single-handover repository). When the user changes one,
+  update it there. Merge order across topics is the user's; record it in
+  `_shared.md` only when they give it.
+- Update your handover after each PR opens or merges, after each decision, and
+  before breaks.
 - Record state, not history, in under about 5k tokens.
-- A new session starts from HANDOVER.md. Don't read previous chats; search an old
+- A new session starts from the handover. Don't read previous chats; search an old
   transcript only for one specific fact.

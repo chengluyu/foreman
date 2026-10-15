@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.5.0. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.6.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.
@@ -15,13 +15,16 @@ merges.
 |---|---|
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
 | `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. Copy the folder to `~/.claude/skills/`. |
-| `foreman-start.sh` | Run by `/foreman`: finds the repository's handover, creates it on first use, and reads its settings. |
+| `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. Copy the folders to `~/.claude/skills/` too. |
+| `foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. Copy them to `~/.claude/agents/`. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a context band, a spawn guard, per-brief effort and auto-compact. See "The foreman-board mod". |
-| `HANDOVER.md` | The handover template. `/foreman` copies it into each repository on first use. |
+| `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
+| `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
+| `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
 
 The lead reads only `lead.md`, not this guide. Everything a lead loads is re-read on
@@ -400,6 +403,30 @@ Keep-alive check-ins aren't worth setting up.
   of resuming them.
 - If you forgot to compact and the lead is big, start a new session from
   `HANDOVER.md` instead of compacting it cold.
+
+## Topics: one handover per line of work
+
+When a repository has several lines of work that barely touch, give each its own
+handover instead of one long file. Every lead re-reads its whole handover on every
+call, so a lead should carry only its own line.
+
+- `/foreman-create browser` makes `handovers/browser.md` and, the first time,
+  `handovers/_shared.md`, in the main checkout, kept out of git as a folder.
+- `/foreman-resume browser` continues it. Use it when you retire a lead and start
+  a new one: the handover belongs to the topic, not the session. The new lead
+  replaces the `Lead:` line; it does not look for the old session.
+- A topic is lowercase letters, digits and dashes. A wrong or missing name prints a
+  `STOP:` line with the topics that exist; nothing is created by accident.
+- `_shared.md` holds what is true for every topic: the Standing rules (review bot,
+  Sonnet, builder, worker rules), the merge order across topics, who is using the
+  machine (e2e focus, clipboard, ports) and the environment. A lead reads its topic
+  and `_shared.md`, and never another topic's file.
+- Once `handovers/` exists, plain `/foreman` stops and points to the two commands.
+  Repositories without it keep one `HANDOVER.md` and work as before.
+- To move an existing `HANDOVER.md` over: create the topic, move the topic's
+  sections across and the Standing rules and Environment into `_shared.md`, and
+  leave a one-line pointer in the old file. The foreman-board mod reads
+  `_shared.md` first and `HANDOVER.md` otherwise.
 
 ## Handover and new sessions
 

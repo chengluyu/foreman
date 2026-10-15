@@ -6,6 +6,42 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.6.0 (2026-10-07)
+
+One handover per line of work. Checked in a scratch repository with a worktree:
+create, resume, wrong and duplicate names, the single-handover fallback and the git
+exclusion. The skills are untested in a live session.
+
+### Added
+- `/foreman-create TOPIC` and `/foreman-resume TOPIC` (`skills/foreman-create/`,
+  `skills/foreman-resume/`). The first word is the topic and the rest is the first
+  request. Dash names, because a colon name was not verified for personal skills.
+- `handovers/<topic>.md` per topic and `handovers/_shared.md` for the Standing rules,
+  merge order across topics, machine use and environment. Templates in
+  `handover-templates/`.
+- `foreman-start.sh` modes `create`, `resume`, `list` and `rules`. Problems print a
+  `STOP:` line.
+
+### Changed
+- `lead.md` tells a lead to read its topic and `_shared.md` only, and to update only
+  its own topic.
+- With a `handovers/` directory, plain `/foreman` stops and points to the new commands.
+  Without one, nothing changes.
+- The foreman-board mod reads `handovers/_shared.md` for its settings, else `HANDOVER.md`.
+- `version.sh` stamps and checks the new skills.
+
+### Upgrade from 0.5.0
+1. Copy `skills/foreman*` to `~/.claude/skills/`.
+2. Run `./version.sh`.
+3. To use topics in a repository, run `/foreman-create TOPIC` there, then move the
+   old handover over as described in "Topics" in `FOREMAN.md`.
+
+### To check when testing
+- `/foreman-resume` in a live session loads `lead.md` and the shared review-bot rules,
+  and the lead reads only its own topic.
+- The lead's first Bash call runs the start script with just the topic word.
+- After a compaction the lead still has its topic and paths.
+
 ## 0.5.0 (2026-10-03)
 
 Effort follows Anthropic's "Spending your effort" post, and an optional mod watches

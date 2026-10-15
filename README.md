@@ -10,6 +10,9 @@ with one lead agent and a crew of worker agents, without running out of your usa
 limit halfway through the week. It is a slash command, a few short prompt files and
 an optional mod. This page explains where it came from and how to use it.
 
+There is also a [Kimi Code edition](kimi/README.md) in `kimi/`, installed with
+`/plugins install https://github.com/chengluyu/foreman` in Kimi Code.
+
 ## What I did before
 
 For a while I ran a project the obvious way. I kept one long chat open as the

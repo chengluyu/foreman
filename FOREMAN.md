@@ -24,6 +24,7 @@ merges.
 | `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
 | `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
+| `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
 
 The lead reads only `lead.md`, not this guide. Everything a lead loads is re-read on

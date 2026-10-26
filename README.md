@@ -10,6 +10,9 @@ with one lead agent and a crew of worker agents, without running out of your usa
 limit halfway through the week. It is a slash command, a few short prompt files and
 an optional mod. This page explains where it came from and how to use it.
 
+There is also a [Kimi Code edition](kimi/README.md) in `kimi/`, installed with
+`/plugins install https://github.com/chengluyu/foreman` in Kimi Code.
+
 ## What I did before
 
 For a while I ran a project the obvious way. I kept one long chat open as the
@@ -77,7 +80,9 @@ The rules behind them:
 - **A handover file replaces old chats.** Each repository has one `HANDOVER.md`,
   shared by every worktree and kept out of git. A new lead starts from it. It also
   holds the repository's settings and the rules the lead copies into every brief,
-  because workers can't see the lead's memory.
+  because workers can't see the lead's memory. A repository with several separate
+  lines of work gets one handover per topic (`/foreman-create TOPIC`,
+  `/foreman-resume TOPIC`) and one shared rules file.
 - **Sonnet for short jobs only.** Sonnet costs half as much per token, except for
   cache reads, which cost the same. Replaying my chats, that came to 24% less on
   long jobs and 43% less on short ones, so only clerks and scouts use it.

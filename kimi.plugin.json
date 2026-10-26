@@ -1,0 +1,13 @@
+{
+  "name": "foreman",
+  "version": "0.7.0",
+  "description": "Run a coding project with one lead agent and a crew of worker agents. The lead plans, writes a brief for each task, sends workers out, tracks pull requests and keeps a compact handover. Each worker takes one brief, works in its own git worktree and stops.",
+  "author": { "name": "Foreman" },
+  "skills": "./kimi/skills/",
+  "agents": "./kimi/agents/",
+  "interface": {
+    "displayName": "Foreman",
+    "shortDescription": "Lead-and-workers coding workflow",
+    "longDescription": "Foreman keeps the lead's context small: one task per worker, one worker per pull request, follow-up fixes to fresh workers, and one handover per repository, or per topic, that new sessions start from. Includes the foreman, foreman-create and foreman-resume lead skills and five worker agents: builder, investigator, clerk, scout and responder."
+  }
+}

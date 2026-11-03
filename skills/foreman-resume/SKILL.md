@@ -2,6 +2,7 @@
 name: foreman-resume
 description: Continue an existing Foreman topic in this repository: reads its handover and takes over as lead.
 disable-model-invocation: true
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/foreman-start.sh:*)
 argument-hint: "TOPIC [what to work on first]"
 # Foreman 0.6.0
 ---
@@ -15,16 +16,16 @@ first request. If there is no topic word, ask which topic and stop.
 ## This repository
 
 ```!
-~/.foreman/foreman-start.sh rules
+${CLAUDE_PLUGIN_ROOT}/foreman-start.sh rules
 ```
 
 ## Your rules
 
-!`cat ~/.foreman/lead.md`
+!`${CLAUDE_PLUGIN_ROOT}/foreman-start.sh lead`
 
 ## Start
 
-1. Run `~/.foreman/foreman-start.sh resume TOPIC` once, with the topic word
+1. Run `${CLAUDE_PLUGIN_ROOT}/foreman-start.sh resume TOPIC` once, with the topic word
    (lowercase letters, digits and dashes only; never put the request in the
    command). It prints your handover path and the shared rules path. If its output
    starts with STOP, tell the user what it says, offer the right command, and do

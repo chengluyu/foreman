@@ -6,7 +6,7 @@ repository's PRs merge only after the bot approves them.
 ## Settings
 These are the defaults; the handover's Standing rules can override them.
 - Bot: Codex. Trigger comment: `@codex review`.
-- Watcher: `~/.foreman/review-wait.sh`. For another bot, set
+- Watcher: `{foreman}/review-wait.sh`. For another bot, set
   `BOT` and `PASS_TEXT` in its environment.
 - Round cap: 5.
 
@@ -16,7 +16,7 @@ These are the defaults; the handover's Standing rules can override them.
 - When a builder opens a PR, start the watcher as a background Monitor with a
   30-minute timeout: `review-wait.sh OWNER/REPO PR`. After each trigger comment,
   start it again with the comment's ID as a third argument.
-- On `findings <ids>`, send a `foreman-responder` with the repository, PR, branch,
+- On `findings <ids>`, send a `foreman:responder` with the repository, PR, branch,
   worktree, review IDs and the worker rules. Don't read the findings yourself. When it reports
   `trigger <id>`, restart the watcher with that ID.
 - On `passed`, record it in HANDOVER.md and tell the user the PR has passed.

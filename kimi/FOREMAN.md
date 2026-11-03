@@ -160,15 +160,15 @@ Once per machine; nothing is needed per project.
    ```text
    /plugins install https://github.com/chengluyu/foreman
    ```
-   or from a local checkout, `/plugins install ~/.foreman`.
+   or from a local clone, `/plugins install /path/to/foreman`.
    Then `/reload` or start a new session. This registers the three foreman skills
    and the five worker profiles at once.
-   To install the pieces by hand instead:
+   To install the pieces by hand instead, from the root of a clone:
    ```bash
-   mkdir -p ~/.kimi-code/skills && cp -r ~/.foreman/kimi/skills/foreman* ~/.kimi-code/skills/
+   mkdir -p ~/.kimi-code/skills && cp -r kimi/skills/foreman* ~/.kimi-code/skills/
    ```
    ```bash
-   mkdir -p ~/.agents/agents && cp ~/.foreman/kimi/agents/foreman-*.md ~/.agents/agents/
+   mkdir -p ~/.agents/agents && cp kimi/agents/foreman-*.md ~/.agents/agents/
    ```
    (`~/.agents/agents/` is shared with other agent tools; `~/.kimi-code/agents/`
    works too.) A plugin install is copied into
@@ -437,9 +437,8 @@ If you used Foreman on Claude Code, this is what to expect here:
   model once per machine with `/secondary-model`.
 - **Step caps are budgets, not limits.** The profiles' `maxTurns` caps are gone;
   each profile now states its step budget in prose and stops itself.
-- **The foreman-board mod does not exist here.** No live worker board, no spawn
-  guard, no auto-compact. The lead counts running workers itself, and you compact
-  it at natural breaks as before.
+- **The foreman-board mod does not exist here.** No live worker board. The lead
+  counts running workers itself, and you compact it at natural breaks as before.
 - **The skill is invoked, not injected.** `/skill:foreman` tells the lead to run
   the start script and read `lead.md`, instead of pre-expanding their contents.
   The skill folder is self-contained, so no file refers to where you cloned the

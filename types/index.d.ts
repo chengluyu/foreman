@@ -21,28 +21,14 @@ export type Worker = {
 export type Lead = {
   tokens: number
   window: number
-  compactAt: number
-  isAuto: boolean
-  compactions: number
-  lastTry: number
-}
-
-export type BoardSettings = {
-  isLoaded: boolean
-  handover: string
-  isSonnetAllowed: boolean
-  maxWorkers: number
-  hasRules: boolean
 }
 
 declare module 'claude-code' {
   interface PluginState {
-    'foreman-board': {
+    foreman: {
       workers: Worker[]
       lead: Lead
-      settings: BoardSettings
       isActive: boolean
-      isLead: boolean
       now: number
     }
   }

@@ -87,12 +87,10 @@ The rules behind them:
   cache reads, which cost the same. Replaying my chats, that came to 24% less on
   long jobs and 43% less on short ones, so only clerks and scouts use it.
 
-Two parts are optional. If a review bot such as Codex must approve your pull
-requests, the lead runs a watcher and sends a responder for each round, up to a
-cap. And `mod/foreman-board` is a Claude Code mod that runs inside the lead's
-session: it shows every worker's steps, context and cost as they happen, refuses
-a worker over the limit or a brief without rules, and compacts the lead when it
-passes 200k tokens.
+If a review bot such as Codex must approve your pull requests, the lead runs a
+watcher and sends a responder for each round, up to a cap. And the plugin includes
+a Claude Code mod, foreman-board, that runs inside the lead's session: it shows how many workers are running and every worker's steps, context
+and cost as they happen.
 
 ## How the first run went
 
@@ -114,24 +112,21 @@ what to check when testing, and what was measured.
 
 ## Setting it up
 
-You need Claude Code. Foreman's skills read their files from `~/.foreman`, so
-clone it there:
+You need Claude Code. Install Foreman as a plugin; this repository is its own
+marketplace:
 
 ```bash
-git clone https://github.com/chengluyu/foreman.git ~/.foreman
+claude plugin marketplace add chengluyu/foreman
 ```
-
-If you keep your clone somewhere else, link it to that name:
 
 ```bash
-ln -s /path/to/your/foreman ~/.foreman
+claude plugin install foreman@foreman
 ```
 
-Install the commands and the worker profiles:
-
-```bash
-cp -R ~/.foreman/skills/* ~/.claude/skills/ && cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/
-```
+That installs the commands and the worker profiles. If you installed an earlier
+version by copying files, delete `~/.claude/skills/foreman*` and
+`~/.claude/agents/foreman-*.md` first, and change `foreman-builder` to
+`foreman:builder` in any handover that names it.
 
 Give workers the one-hour cache in `~/.claude/settings.json`:
 
@@ -150,9 +145,7 @@ is in use, whether Sonnet workers are allowed, which builder profile to use, and
 which rules every worker must follow. It writes the answers into the handover.
 After that it tells you in five lines where things stand.
 
-The mod is early access and needs Claude Code 2.1.286 or later. To load it, add
-`mod/foreman-board` to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of
-`~/.claude/settings.json`.
+The board mod is early access and needs Claude Code 2.1.286 or later.
 
 ## Where to read more
 

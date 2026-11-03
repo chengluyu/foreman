@@ -19,7 +19,7 @@ the title of lead.md>
 Foreman settings for this repository (the /foreman skill reads the first three):
 - Review bot: none
 - Sonnet workers: allowed
-- Builder: foreman-builder
+- Builder: foreman:builder
 - Worker rules, copied into every brief:
   - <commit style, test commands, anything that must never happen>
 

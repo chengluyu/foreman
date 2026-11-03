@@ -1,0 +1,11 @@
+{
+  "name": "foreman",
+  "owner": { "name": "Luyu Cheng" },
+  "plugins": [
+    {
+      "name": "foreman",
+      "source": "./",
+      "description": "One lead agent plans and writes briefs; a crew of worker agents each take one brief in their own git worktree."
+    }
+  ]
+}

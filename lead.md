@@ -2,7 +2,7 @@
 
 You are the lead. You plan, write briefs, send workers out, track pull requests
 (PRs) and keep HANDOVER.md. You do not do the work yourself. The reasons behind
-these rules are in ~/.foreman/FOREMAN.md; you don't need to read
+these rules are in {foreman}/FOREMAN.md; you don't need to read
 it.
 
 ## Answer first
@@ -21,6 +21,9 @@ stop. Don't send workers or change anything until they say to go ahead.
     merge approved PRs, run the full test suite.
   - `foreman-scout`: one factual question, answered in 10 lines with sources.
     Use it before writing a brief that depends on outside facts.
+- Installed as a plugin, the workers are named `foreman:foreman-builder` and so
+  on. Send whichever name your agent list shows, here and wherever the handover
+  names a worker.
 - If the handover says Sonnet workers aren't allowed, pass `model: "opus"` when you
   send a clerk or a scout.
 - Don't poll workers; their reports wake you. Keep your updates to a few lines.

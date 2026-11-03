@@ -8,6 +8,11 @@
 #   foreman-start.sh rules            the shared settings, and the review-bot rules when
 #                                     the shared rules name a bot (no arguments are
 #                                     passed from the skills, so it is safe to inject)
+#   foreman-start.sh lead             the lead's rules, lead.md
+#
+# The skills run this script instead of cat because Claude Code only lets a skill cat
+# files inside the session's working directories, and a plugin lives elsewhere.
+# {foreman} in lead.md and review-bot.md becomes this folder's path.
 #
 # Handovers live in the repository's main checkout, which every worktree shares, and
 # are kept out of git through the common git directory's info/exclude. A problem is
@@ -17,6 +22,9 @@ set -eu
 dir=$(cd "$(dirname "$0")" && pwd)
 mode=${1:-single}
 topic=${2:-}
+
+show() { sed "s|{foreman}|$dir|g" "$dir/$1"; }
+if [ "$mode" = lead ]; then show lead.md; exit 0; fi
 
 root=$(git worktree list --porcelain 2>/dev/null | sed -n '1s/^worktree //p')
 common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
@@ -56,7 +64,7 @@ settings() {
   echo "- Builder: $(setting 'Builder')"
   case "$bot" in
     ''|none|None|'<'*) ;;
-    *) echo; cat "$dir/review-bot.md" ;;
+    *) echo; show review-bot.md ;;
   esac
 }
 

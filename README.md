@@ -114,24 +114,20 @@ what to check when testing, and what was measured.
 
 ## Setting it up
 
-You need Claude Code. Foreman's skills read their files from `~/.foreman`, so
-clone it there:
+You need Claude Code. Install Foreman as a plugin; this repository is its own
+marketplace:
 
 ```bash
-git clone https://github.com/chengluyu/foreman.git ~/.foreman
+claude plugin marketplace add chengluyu/foreman
 ```
-
-If you keep your clone somewhere else, link it to that name:
 
 ```bash
-ln -s /path/to/your/foreman ~/.foreman
+claude plugin install foreman@foreman
 ```
 
-Install the commands and the worker profiles:
-
-```bash
-cp -R ~/.foreman/skills/* ~/.claude/skills/ && cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/
-```
+That installs the commands and the worker profiles. If you installed an earlier
+version by copying files, delete `~/.claude/skills/foreman*` and
+`~/.claude/agents/foreman-*.md` first; otherwise the old copies win.
 
 Give workers the one-hour cache in `~/.claude/settings.json`:
 

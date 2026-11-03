@@ -17,10 +17,11 @@ if [ "${1:-check}" = bump ]; then
   new=${2:?usage: ./version.sh bump NEW}
   echo "$new" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || { echo "not a version: $new"; exit 1; }
   for f in $stamped; do sed -i '' -E "s/$pattern/Foreman $new/" "$f"; done
+  sed -i '' -E 's/"version": "[0-9]+\.[0-9]+\.[0-9]+"/"version": "'"$new"'"/' "$dir/.claude-plugin/plugin.json"
   echo "$new" > "$dir/VERSION"
-  echo "Foreman $v -> $new. Add a CHANGELOG.md entry, commit, tag v$new, then copy"
-  echo "agents/foreman-*.md and skills/foreman to wherever you installed them and"
-  echo "start new sessions."
+  echo "Foreman $v -> $new. Add a CHANGELOG.md entry, commit, tag v$new and push;"
+  echo "then run claude plugin marketplace update foreman and"
+  echo "claude plugin update foreman@foreman, and start new sessions."
   exit 0
 fi
 

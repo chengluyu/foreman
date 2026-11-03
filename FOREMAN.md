@@ -14,11 +14,11 @@ merges.
 | File | What it is |
 |---|---|
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
-| `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. Copy the folder to `~/.claude/skills/`. |
-| `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. Copy the folders to `~/.claude/skills/` too. |
+| `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. |
+| `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. |
 | `foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
-| `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. Copy them to `~/.claude/agents/`. |
+| `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a context band, a spawn guard, per-brief effort and auto-compact. See "The foreman-board mod". |
 | `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
@@ -26,6 +26,7 @@ merges.
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
 | `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
+| `.claude-plugin/` | The plugin manifest and the one-plugin marketplace that `claude plugin install` reads. |
 
 The lead reads only `lead.md`, not this guide. Everything a lead loads is re-read on
 every one of its calls, so the rules it carries are kept short.
@@ -178,12 +179,19 @@ handles, such as thinking display, `max_tokens`, JSON parsing and refusal handli
 
 Once per machine; nothing is needed per project.
 
-1. Clone Foreman to `~/.foreman`, where its skills read their files from, or
-   link your clone there with `ln -s /path/to/your/foreman ~/.foreman`. Then
-   install the worker profiles and the commands:
+1. Install the plugin. This repository is its own marketplace:
    ```bash
-   cp -R ~/.foreman/skills/* ~/.claude/skills/ && cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/
+   claude plugin marketplace add chengluyu/foreman
    ```
+   ```bash
+   claude plugin install foreman@foreman
+   ```
+   That installs the `/foreman`, `/foreman-create` and `/foreman-resume` commands
+   (also reachable as `/foreman:foreman` and so on) and the worker profiles, named
+   `foreman:foreman-builder` and so on. If you copied an earlier version into
+   `~/.claude/skills/` and `~/.claude/agents/`, delete those copies first.
+   To try a local clone without installing it, start Claude Code with
+   `claude --plugin-dir /path/to/foreman`.
    The profiles hold no project rules. Workers follow the project's `CLAUDE.md`
    and the Rules at the end of each brief, which the lead copies from the
    handover.
@@ -199,8 +207,12 @@ Once per machine; nothing is needed per project.
    hour. Replaying one project's chats at API prices, an hour for workers saved 13%,
    and the default 5-minute lead cache would have added 12%. The setting also
    covers workflows and Claude Code's background helper requests.
-3. Start a new session to pick up the worker profiles, then check them with the
-   smoke test prompt at the end of this guide.
+3. Start a new session to pick up the plugin, then check it with the smoke test
+   prompt at the end of this guide.
+4. To update, run `claude plugin marketplace update foreman`, then
+   `claude plugin update foreman@foreman`, and start a new session. Updates arrive
+   only when `.claude-plugin/plugin.json` gets a new version, which `version.sh bump`
+   writes.
 
 ## Starting a lead session
 
@@ -477,12 +489,12 @@ measured.
   Fixes to wording or figures that change nothing bump the patch version: 0.2.0 to
   0.2.1. Call the first version you have tested and kept 1.0.0.
 - To release a change, run `./version.sh bump 0.3.0`, add an entry to
-  `CHANGELOG.md`, commit, and tag the commit `v0.3.0`. Then copy the profiles and
-  the skill to where you installed them, and start new sessions. `git diff v0.2.0
+  `CHANGELOG.md`, commit, tag the commit `v0.3.0` and push. Then update the plugin
+  (see "One-time setup") and start new sessions. `git diff v0.2.0
   v0.3.0` shows exactly what changed between two tested versions. Profiles load
   when a session starts, so a running session keeps the old version. `/foreman`
-  reads `lead.md`, `review-bot.md` and the scripts from this folder, so those take
-  effect at the next `/foreman`.
+  reads `lead.md`, `review-bot.md` and the scripts from the installed plugin, so
+  after an update those take effect at the next `/foreman`.
 - Run `./version.sh` before a test to find stale installed copies of the profiles
   and the skill. Pass a project's `.claude/agents` folder to check that too.
 - Compare versions on whole days of work with the checks under Measuring, and

@@ -172,7 +172,9 @@ export const register: Register = on => {
   })
 
   on('agent.spawn', async ($, e, next) => {
-    if (e.parentAgentId || !e.subagentType.startsWith('foreman-')) return next(e)
+    // The plugin install names workers foreman:foreman-builder; a copied install, foreman-builder.
+    const type = e.subagentType.replace(/^foreman:/, '')
+    if (e.parentAgentId || !type.startsWith('foreman-')) return next(e)
     await update($, isActive, () => true)
     const cur: BoardSettings = await read($, settings)
     const s: BoardSettings = cur.isLoaded ? cur : await loadSettings($)
@@ -184,11 +186,11 @@ export const register: Register = on => {
       return { deny: `Foreman guard: the brief has no Rules section. End it with "Rules:" and the worker rules from ${s.handover || 'HANDOVER.md'}'s Standing rules, word for word; workers can't see your memory.` }
     }
     let spawn = e
-    if (!s.isSonnetAllowed && /clerk|scout/.test(e.subagentType) && !/opus|fable/i.test(e.model ?? '')) {
+    if (!s.isSonnetAllowed && /clerk|scout/.test(type) && !/opus|fable/i.test(e.model ?? '')) {
       spawn = { ...e, model: 'opus' }
-      $.ui.toast(`Foreman: ${short(e.subagentType)} moved to Opus (Sonnet workers aren't allowed here)`)
+      $.ui.toast(`Foreman: ${short(type)} moved to Opus (Sonnet workers aren't allowed here)`)
     }
-    if (e.subagentType === 'foreman-builder' && !(/Done when/i.test(e.prompt) && /Branch/i.test(e.prompt))) {
+    if (type === 'foreman-builder' && !(/Done when/i.test(e.prompt) && /Branch/i.test(e.prompt))) {
       $.ui.toast('Foreman: this builder brief has no "Done when" or "Branch"')
     }
     const r = await next(spawn)
@@ -197,7 +199,7 @@ export const register: Register = on => {
       const pr = /#(\d+)/.exec(e.description)?.[1]
       const effort = /^Effort:\s*(low|medium|high|xhigh|max)\b/im.exec(e.prompt)?.[1]?.toLowerCase() ?? ''
       await patch($, r.agentId, w => ({
-        ...w, type: e.subagentType, desc: e.description, model: r.model ?? '', started: t, last: t,
+        ...w, type, desc: e.description, model: r.model ?? '', started: t, last: t,
         pr: pr ? Number(pr) : null, effort,
       }))
     }

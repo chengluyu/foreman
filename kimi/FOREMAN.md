@@ -160,15 +160,15 @@ Once per machine; nothing is needed per project.
    ```text
    /plugins install https://github.com/chengluyu/foreman
    ```
-   or from a local checkout, `/plugins install ~/Developer/harness/foreman`.
+   or from a local checkout, `/plugins install ~/.foreman`.
    Then `/reload` or start a new session. This registers the three foreman skills
    and the five worker profiles at once.
    To install the pieces by hand instead:
    ```bash
-   mkdir -p ~/.kimi-code/skills && cp -r ~/Developer/harness/foreman/kimi/skills/foreman* ~/.kimi-code/skills/
+   mkdir -p ~/.kimi-code/skills && cp -r ~/.foreman/kimi/skills/foreman* ~/.kimi-code/skills/
    ```
    ```bash
-   mkdir -p ~/.agents/agents && cp ~/Developer/harness/foreman/kimi/agents/foreman-*.md ~/.agents/agents/
+   mkdir -p ~/.agents/agents && cp ~/.foreman/kimi/agents/foreman-*.md ~/.agents/agents/
    ```
    (`~/.agents/agents/` is shared with other agent tools; `~/.kimi-code/agents/`
    works too.) A plugin install is copied into

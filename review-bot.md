@@ -1,4 +1,4 @@
-# Foreman 0.6.0: review-bot rounds (optional)
+# Foreman 0.7.0: review-bot rounds (optional)
 
 These rules apply because the handover's Standing rules name a review bot: this
 repository's PRs merge only after the bot approves them.
@@ -19,7 +19,7 @@ These are the defaults; the handover's Standing rules can override them.
 - On `findings <ids>`, send a `foreman:responder` with the repository, PR, branch,
   worktree, review IDs and the worker rules. Don't read the findings yourself. When it reports
   `trigger <id>`, restart the watcher with that ID.
-- On `passed`, record it in HANDOVER.md and tell the user the PR has passed.
+- On `passed`, mark the PR ready (`gh pr ready PR`) if it is a draft, record the pass in HANDOVER.md and tell the user the PR has passed. PRs are opened as drafts so that review rounds start no CI; marking the PR ready starts the CI run that decides the merge.
 - On `timeout`, restart the watcher once. If it times out again, tell the user.
 - When any other worker pushes to the PR, post the trigger comment yourself
   (`gh pr comment PR --body '@codex review'`) and restart the watcher.

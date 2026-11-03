@@ -6,6 +6,53 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.7.0 (2026-11-04)
+
+Foreman installs as a Claude Code plugin, and builders open draft PRs. The plugin
+was loaded with Claude Code 2.1.246 and its commands expanded in a scratch
+repository. Not yet checked: a live lead spawning `foreman:builder`, the board
+running (it needs Claude Code 2.1.286), and the review bot reviewing a draft.
+
+### Added
+- The repository is a Claude Code plugin and its own marketplace
+  (`.claude-plugin/`). Install with `claude plugin marketplace add
+  chengluyu/foreman` and `claude plugin install foreman@foreman`.
+- The foreman-board mod ships inside the plugin (`hooks/`, `types/`).
+- `foreman-start.sh lead` prints `lead.md`, since Claude Code won't let a skill
+  `cat` a file outside the session's working directories.
+
+### Changed
+- The workers are `foreman:builder`, `foreman:investigator`, `foreman:clerk`,
+  `foreman:scout` and `foreman:responder` (`agents/builder.md` and so on).
+- Skills find their files through the plugin's path instead of
+  `~/Developer/harness/foreman` or `~/.foreman`, and run the start script without
+  an approval prompt.
+- Builders open PRs as drafts (`agents/builder.md`). On a review-bot pass the lead
+  marks the PR ready, which starts CI (`review-bot.md`). Review rounds then start
+  no CI runs; only the reviewed commit is tested.
+- The foreman-board mod switches on for `/foreman`, `/foreman-create` and
+  `/foreman-resume`, with or without the `foreman:` prefix. It used to miss the
+  topic commands.
+- `version.sh` works on Linux as well as macOS, writes the plugin's version on a
+  bump, and reports copies left from installing by hand.
+
+### Removed
+- The foreman-board spawn guard (worker limit, Rules check, moving clerks and
+  scouts to Opus) and its auto-compact, with `/foreman-autocompact`.
+
+### Upgrade from 0.6.0
+1. Delete the copies installed by hand: `~/.claude/skills/foreman*` and
+   `~/.claude/agents/foreman-*.md`. Remove the foreman-board folder from
+   `CLAUDE_CODE_PLUGIN_DIRS` if you added it.
+2. Install the plugin as above, and start a new session.
+3. In each handover, change `foreman-builder` to `foreman:builder`.
+4. The repository's CI should skip draft PRs and run on `ready_for_review`.
+
+### To check when testing
+- The lead sends `foreman:builder` and the other workers by their new names.
+- After a review-bot pass, the lead marks the draft PR ready and CI starts.
+- With Claude Code 2.1.286 or later, the board opens on `/foreman-create`.
+
 ## 0.6.0 (2026-10-07)
 
 One handover per line of work. Checked in a scratch repository with a worktree:

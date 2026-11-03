@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.6.0. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.7.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.

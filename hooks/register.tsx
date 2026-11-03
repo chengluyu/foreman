@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Lead, Worker } from '../types'
 
-// Foreman 0.6.0 helper: a live board of the lead's workers, a one-line band with the
+// Foreman 0.7.0 helper: a live board of the lead's workers, a one-line band with the
 // lead's context and the number of workers running, and per-brief effort.
 
 const PANE = 'foreman-board'

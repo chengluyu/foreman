@@ -4,7 +4,7 @@ description: Start a new Foreman topic in this repository: creates its handover 
 disable-model-invocation: true
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/foreman-start.sh:*)
 argument-hint: "TOPIC [what to work on first]"
-# Foreman 0.6.0
+# Foreman 0.7.0
 ---
 
 You are now the lead for one topic in this repository under the Foreman workflow.

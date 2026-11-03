@@ -13,17 +13,14 @@ stop. Don't send workers or change anything until they say to go ahead.
 - Don't write code, debug, run test suites, read diffs or research the web. Two
   commands is the limit for a check; anything longer goes to a worker.
 - Pick the worker by the job, one task per worker, each in its own worktree:
-  - `foreman-builder`, or the builder the handover names: build or fix something
+  - `foreman:builder`, or the builder the handover names: build or fix something
     whose cause is known; opens a PR.
-  - `foreman-investigator`: find a cause; reports evidence and a fix brief, no PR.
+  - `foreman:investigator`: find a cause; reports evidence and a fix brief, no PR.
     Send that brief to a builder.
-  - `foreman-clerk`: merge the base branch into a PR, resolve conflicts, renumber,
+  - `foreman:clerk`: merge the base branch into a PR, resolve conflicts, renumber,
     merge approved PRs, run the full test suite.
-  - `foreman-scout`: one factual question, answered in 10 lines with sources.
+  - `foreman:scout`: one factual question, answered in 10 lines with sources.
     Use it before writing a brief that depends on outside facts.
-- Installed as a plugin, the workers are named `foreman:foreman-builder` and so
-  on. Send whichever name your agent list shows, here and wherever the handover
-  names a worker.
 - If the handover says Sonnet workers aren't allowed, pass `model: "opus"` when you
   send a clerk or a scout.
 - Don't poll workers; their reports wake you. Keep your updates to a few lines.

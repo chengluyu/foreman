@@ -126,7 +126,8 @@ claude plugin install foreman@foreman
 
 That installs the commands and the worker profiles. If you installed an earlier
 version by copying files, delete `~/.claude/skills/foreman*` and
-`~/.claude/agents/foreman-*.md` first; otherwise the old copies win.
+`~/.claude/agents/foreman-*.md` first, and change `foreman-builder` to
+`foreman:builder` in any handover that names it.
 
 Give workers the one-hour cache in `~/.claude/settings.json`:
 

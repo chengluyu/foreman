@@ -18,14 +18,14 @@ merges.
 | `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. |
 | `foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
-| `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
+| `agents/*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
 | `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
 | `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
-| `version.sh` | Checks that every file and installed copy carries the current version, and bumps it. |
+| `version.sh` | Checks that every file carries the current version and that no old copied install is left, and bumps it. |
 | `.claude-plugin/` | The plugin manifest and the one-plugin marketplace that `claude plugin install` reads. |
 
 The lead reads only `lead.md`, not this guide. Everything a lead loads is re-read on
@@ -92,11 +92,11 @@ PRs):
 
 | Type | Job | Hands back | Model, effort | Step cap |
 |---|---|---|---|---|
-| `foreman-builder` | Build or fix something whose cause is known | A PR and a 15-line report | Opus 5.5, medium | 400 |
-| `foreman-investigator` | Find the cause of a bug, flaky test or odd behaviour | Cause, evidence and a fix brief; no PR | Opus 5.5, high | 150 |
-| `foreman-clerk` | Merges, conflicts, renumbering, merging approved PRs, full test runs | A 10-line report | Sonnet 5.5, medium | 150 |
-| `foreman-scout` | One factual question from the web, docs or code | 10 lines with sources | Sonnet 5.5, medium | 40 |
-| `foreman-responder` (optional) | One round of a review bot's findings on a PR | Fixes, replies and a new review request | Opus 5.5, high | 80 |
+| `foreman:builder` | Build or fix something whose cause is known | A PR and a 15-line report | Opus 5.5, medium | 400 |
+| `foreman:investigator` | Find the cause of a bug, flaky test or odd behaviour | Cause, evidence and a fix brief; no PR | Opus 5.5, high | 150 |
+| `foreman:clerk` | Merges, conflicts, renumbering, merging approved PRs, full test runs | A 10-line report | Sonnet 5.5, medium | 150 |
+| `foreman:scout` | One factual question from the web, docs or code | 10 lines with sources | Sonnet 5.5, medium | 40 |
+| `foreman:responder` (optional) | One round of a review bot's findings on a PR | Fixes, replies and a new review request | Opus 5.5, high | 80 |
 
 Why these four:
 - **Investigations run long and wait the most.** In one chat they took 7.6% of the
@@ -187,9 +187,11 @@ Once per machine; nothing is needed per project.
    claude plugin install foreman@foreman
    ```
    That installs the `/foreman`, `/foreman-create` and `/foreman-resume` commands
-   (also reachable as `/foreman:foreman` and so on) and the worker profiles, named
-   `foreman:foreman-builder` and so on. If you copied an earlier version into
-   `~/.claude/skills/` and `~/.claude/agents/`, delete those copies first.
+   (also reachable as `/foreman:foreman` and so on) and the workers `foreman:builder`,
+   `foreman:investigator`, `foreman:clerk`, `foreman:scout` and `foreman:responder`.
+   If you copied an earlier version into `~/.claude/skills/` and `~/.claude/agents/`,
+   delete those copies first, and change `foreman-builder` to `foreman:builder` in
+   any handover that names it.
    To try a local clone without installing it, start Claude Code with
    `claude --plugin-dir /path/to/foreman`.
    The profiles hold no project rules. Workers follow the project's `CLAUDE.md`
@@ -233,7 +235,7 @@ its rules. The first time in a repository, the lead asks for the handover's
 Standing rules, the repository's Foreman settings:
 - `Review bot`: `none`, or `Codex` to load the review-bot rules.
 - `Sonnet workers`: `allowed`, or `not allowed` to run clerks and scouts on Opus.
-- `Builder`: `foreman-builder`, or a project's own builder profile.
+- `Builder`: `foreman:builder`, or a project's own builder profile.
 - Worker rules, which the lead copies into every brief: commit style, test commands,
   and anything that must never happen, such as agent names in branches or commits.
 
@@ -488,8 +490,8 @@ measured.
   when a session starts, so a running session keeps the old version. `/foreman`
   reads `lead.md`, `review-bot.md` and the scripts from the installed plugin, so
   after an update those take effect at the next `/foreman`.
-- Run `./version.sh` before a test to find stale installed copies of the profiles
-  and the skill. Pass a project's `.claude/agents` folder to check that too.
+- Run `./version.sh` before a test to check the stamps and to find copies of the
+  profiles and skills left from installing by hand.
 - Compare versions on whole days of work with the checks under Measuring, and
   write the results into the version's changelog entry.
 

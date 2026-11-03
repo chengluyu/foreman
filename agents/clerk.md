@@ -1,5 +1,5 @@
 ---
-name: foreman-clerk
+name: clerk
 description: Does one repository chore that changes no behaviour, such as merging the base branch into a PR and resolving conflicts, renumbering versions, re-pointing a stacked PR, merging PRs the user approved, or running the full test suite and reporting failures. Stops and reports when a conflict needs a design decision. Give it the chore, the branches or PR numbers, and the checks to run.
 model: claude-sonnet-5-5
 effort: medium

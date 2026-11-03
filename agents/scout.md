@@ -1,5 +1,5 @@
 ---
-name: foreman-scout
+name: scout
 description: Answers one factual question from the web, reference documentation or the codebase, read-only, in at most 10 lines with sources. Use before writing a brief, for example to check how a reference product behaves, what an API accepts, or where something is handled in the code. Give it the question and what the answer is for.
 model: claude-sonnet-5-5
 effort: medium

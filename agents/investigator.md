@@ -1,5 +1,5 @@
 ---
-name: foreman-investigator
+name: investigator
 description: Finds the cause of one bug, flaky test or unexplained behaviour in its own git worktree, then reports the cause with evidence and a ready fix brief. Opens no PR. Give it the symptom, how to reproduce it if known, where to start looking, what is already ruled out, and a step budget if not the default 100.
 model: claude-opus-5-5
 effort: high

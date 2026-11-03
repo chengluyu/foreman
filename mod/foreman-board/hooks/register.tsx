@@ -13,8 +13,8 @@ const isActive = atom({ plugin: 'foreman-board', key: 'isActive' } as const, fal
 const now = atom({ plugin: 'foreman-board', key: 'now' } as const, 0)
 
 const MAX_TURNS: Record<string, number> = {
-  'foreman-builder': 400, 'foreman-investigator': 150, 'foreman-clerk': 150,
-  'foreman-scout': 40, 'foreman-responder': 80,
+  'foreman:builder': 400, 'foreman:investigator': 150, 'foreman:clerk': 150,
+  'foreman:scout': 40, 'foreman:responder': 80,
 }
 // $ per million tokens: input, cache write (1 hour, as subagentPromptCacheTtl sets), cache read, output.
 const PRICES: Record<string, [number, number, number, number]> = {
@@ -26,7 +26,7 @@ const QUIET_MS = 4 * 60_000
 const LEAD_SKILL = /^(foreman:)?foreman(-create|-resume)?$/
 const LEAD_MARK = /command-name>\/(foreman:)?foreman(-create|-resume)?<|^\/(foreman:)?foreman(-create|-resume)?(\s|$)/m
 
-const short = (type: string) => type.replace(/^foreman-/, '')
+const short = (type: string) => type.replace(/^foreman:/, '')
 const fK = (n: number) => (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.round(n / 1e3) + 'k')
 const fUsd = (v: number) => '$' + v.toFixed(2)
 const fMin = (ms: number) => (ms < 60_000 ? Math.round(ms / 1000) + 's' : Math.round(ms / 60_000) + 'm')
@@ -110,11 +110,10 @@ export const register: Register = on => {
   })
 
   on('agent.spawn', async ($, e, next) => {
-    // The plugin install names workers foreman:foreman-builder; a copied install, foreman-builder.
-    const type = e.subagentType.replace(/^foreman:/, '')
-    if (e.parentAgentId || !type.startsWith('foreman-')) return next(e)
+    const type = e.subagentType
+    if (e.parentAgentId || !type.startsWith('foreman:')) return next(e)
     await update($, isActive, () => true)
-    if (type === 'foreman-builder' && !(/Done when/i.test(e.prompt) && /Branch/i.test(e.prompt))) {
+    if (type === 'foreman:builder' && !(/Done when/i.test(e.prompt) && /Branch/i.test(e.prompt))) {
       $.ui.toast('Foreman: this builder brief has no "Done when" or "Branch"')
     }
     const r = await next(e)
@@ -215,7 +214,7 @@ export const register: Register = on => {
     const byType = new Map<string, number>()
     for (const w of list) byType.set(short(w.type), (byType.get(short(w.type)) ?? 0) + w.usd)
     const rounds = new Map<number, number>()
-    for (const w of list) if (w.type === 'foreman-responder' && w.pr) rounds.set(w.pr, (rounds.get(w.pr) ?? 0) + 1)
+    for (const w of list) if (w.type === 'foreman:responder' && w.pr) rounds.set(w.pr, (rounds.get(w.pr) ?? 0) + 1)
     const total = list.reduce((a, w) => a + w.usd, 0)
     const row = (w: Worker) => {
       const cap = MAX_TURNS[w.type]

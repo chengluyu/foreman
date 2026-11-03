@@ -1,5 +1,5 @@
 ---
-name: foreman-builder
+name: builder
 description: Builds one scoped change from a brief in its own git worktree and opens a PR, under strict cost rules (staged testing, waits under 4 minutes, short reports). Use for features and for fixes whose cause is known. Give it a brief with Task, Rule or cause, Start here (files and line ranges), Done when (3–5 checks the user will do in review), Tests (unit test files and e2e specs by name), Out of scope, and Branch.
 model: claude-opus-5-5
 effort: medium

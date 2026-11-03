@@ -20,7 +20,7 @@ merges.
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
-| `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
+| `hooks/`, `types/` | The foreman-board mod, part of the plugin: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
 | `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
 | `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
@@ -257,8 +257,9 @@ Standing rules, the repository's Foreman settings:
 
 ## The foreman-board mod
 
-Optional, and early access: it needs Claude Code 2.1.286 or later, and the mod API
-may change. It runs inside the lead's session and does three things:
+It comes with the plugin. It is early access: it needs Claude Code 2.1.286 or
+later, and the mod API may change. It runs inside the lead's session and does three
+things:
 - **Band:** one line above the prompt with the lead's context, workers running and
   done, their estimated cost, and a count of workers with warnings.
 - **Board** (`/foreman-board`, opened by the lead commands): each worker's steps against
@@ -267,8 +268,7 @@ may change. It runs inside the lead's session and does three things:
   lists review rounds per PR.
 - **Effort per brief:** applies a brief's `Effort:` line to that worker.
 
-Install it from the same marketplace with
-`claude plugin install foreman-board@foreman`. It switches on in a session that ran
+It switches on in a session that ran
 `/foreman`, `/foreman-create` or `/foreman-resume`, or once a Foreman worker is
 sent, and tracks only Foreman workers. It never refuses a spawn.
 

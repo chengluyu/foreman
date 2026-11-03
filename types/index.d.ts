@@ -25,7 +25,7 @@ export type Lead = {
 
 declare module 'claude-code' {
   interface PluginState {
-    'foreman-board': {
+    foreman: {
       workers: Worker[]
       lead: Lead
       isActive: boolean

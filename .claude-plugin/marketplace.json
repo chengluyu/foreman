@@ -8,11 +8,6 @@
       "name": "foreman",
       "source": "./",
       "description": "One lead agent plans and writes briefs; a crew of worker agents each take one brief in their own git worktree."
-    },
-    {
-      "name": "foreman-board",
-      "source": "./mod/foreman-board",
-      "description": "Optional: a live board of a Foreman lead's workers, and a band with the lead's context and the workers running."
     }
   ]
 }

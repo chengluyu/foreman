@@ -87,10 +87,9 @@ The rules behind them:
   cache reads, which cost the same. Replaying my chats, that came to 24% less on
   long jobs and 43% less on short ones, so only clerks and scouts use it.
 
-Two parts are optional. If a review bot such as Codex must approve your pull
-requests, the lead runs a watcher and sends a responder for each round, up to a
-cap. And `mod/foreman-board` is a Claude Code mod that runs inside the lead's
-session: it shows how many workers are running and every worker's steps, context
+If a review bot such as Codex must approve your pull requests, the lead runs a
+watcher and sends a responder for each round, up to a cap. And the plugin includes
+a Claude Code mod, foreman-board, that runs inside the lead's session: it shows how many workers are running and every worker's steps, context
 and cost as they happen.
 
 ## How the first run went
@@ -146,12 +145,7 @@ is in use, whether Sonnet workers are allowed, which builder profile to use, and
 which rules every worker must follow. It writes the answers into the handover.
 After that it tells you in five lines where things stand.
 
-The mod is early access and needs Claude Code 2.1.286 or later. Install it from the
-same marketplace:
-
-```bash
-claude plugin install foreman-board@foreman
-```
+The board mod is early access and needs Claude Code 2.1.286 or later.
 
 ## Where to read more
 

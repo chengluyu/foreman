@@ -7,10 +7,10 @@ import type { Lead, Worker } from '../types'
 // lead's context and the number of workers running, and per-brief effort.
 
 const PANE = 'foreman-board'
-const workers = atom({ plugin: 'foreman-board', key: 'workers' } as const, [] as Worker[])
-const lead = atom({ plugin: 'foreman-board', key: 'lead' } as const, { tokens: 0, window: 0 } as Lead)
-const isActive = atom({ plugin: 'foreman-board', key: 'isActive' } as const, false)
-const now = atom({ plugin: 'foreman-board', key: 'now' } as const, 0)
+const workers = atom({ plugin: 'foreman', key: 'workers' } as const, [] as Worker[])
+const lead = atom({ plugin: 'foreman', key: 'lead' } as const, { tokens: 0, window: 0 } as Lead)
+const isActive = atom({ plugin: 'foreman', key: 'isActive' } as const, false)
+const now = atom({ plugin: 'foreman', key: 'now' } as const, 0)
 
 const MAX_TURNS: Record<string, number> = {
   'foreman:builder': 400, 'foreman:investigator': 150, 'foreman:clerk': 150,

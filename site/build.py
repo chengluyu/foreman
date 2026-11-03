@@ -30,6 +30,8 @@ from datetime import datetime, timezone
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJECTS = os.path.expanduser('~/.claude/projects/')
+# A copy kept in case Claude Code cleans old transcripts away; read when the original is gone.
+BACKUP = os.environ.get('FOREMAN_TRANSCRIPT_BACKUP', '')  # a folder laid out like ~/.claude/projects
 W = dict(inp=1.0, cw5=1.25, cw1h=2.0, cr=0.1, out=5.0)
 PRICES = {  # API $ per million tokens: input, 5-minute write, 1-hour write, cache read, output
     'opus': (4.0, 5.0, 8.0, 0.20, 20.0),
@@ -38,6 +40,14 @@ PRICES = {  # API $ per million tokens: input, 5-minute write, 1-hour write, cac
 }
 PR_KINDS = ('feat', 'fix', 'docs', 'refactor', 'perf', 'test', 'chore', 'ci', 'build', 'style')
 OWN_WORK = ('edit', 'test', 'build', 'shell', 'read')
+MIN_WORKERS_SHOWN = 10   # sessions with fewer workers get no timeline
+MIN_PRS_SHOWN = 5        # nor do sessions whose workers opened fewer pull requests
+BUCKET = 300             # the timeline gets one sample per agent per 5 minutes, never single calls
+
+
+def bucket(t):
+    """The middle of the 5-minute bucket that a time (seconds into the session) falls in."""
+    return int(t // BUCKET) * BUCKET + BUCKET // 2
 
 
 def epoch(s):
@@ -205,6 +215,14 @@ def gh_prs(repo):
     return {p['number']: p for p in json.loads(raw)}
 
 
+def model_name(model_id):
+    """'claude-opus-5-5' -> 'Opus 5.5'; anything else is kept as is."""
+    m = re.match(r'claude-([a-z]+)-(\d+)(?:-(\d))?\b', model_id or '')
+    if not m:
+        return model_id or 'unknown'
+    return m.group(1).capitalize() + ' ' + m.group(2) + ('.' + m.group(3) if m.group(3) else '')
+
+
 def ctx_of(c):
     return c['inp'] + c['cw5'] + c['cw1h'] + c['cr']
 
@@ -222,6 +240,8 @@ def is_miss(c, first):
 def load(cfg):
     """Read one session: the lead and every sub-agent, with output corrected where the transcript undercounts it."""
     base = os.path.join(PROJECTS, cfg['project'], cfg['id'])
+    if BACKUP and not os.path.exists(base + '.jsonl'):
+        base = os.path.join(BACKUP, cfg['project'], cfg['id'])
     files = [('main', base + '.jsonl', {})]
     for f in sorted(glob.glob(base + '/subagents/*.jsonl')):
         mp = f[:-6] + '.meta.json'
@@ -309,7 +329,7 @@ def session_out(n, cfg, agents, usd, estimated, prs):
     anon = {x: i + 1 for i, x in enumerate(real)}
     rounds = collections.Counter()
     seq = collections.Counter()
-    rows, calls = [], []
+    rows, samples = [], {}
     for idx, a in enumerate([lead] + subs):
         kind = 'lead' if a['main'] else short_type(a['meta'].get('agentType', ''))
         cs = a['calls']
@@ -321,15 +341,21 @@ def session_out(n, cfg, agents, usd, estimated, prs):
             rounds[pr] += 1
             rnd = rounds[pr]
         misses = 0
+        # Per 5-minute bucket: the largest context, the cache rewrites and the summed cost.
         for i, c in enumerate(cs):
             miss = is_miss(c, i == 0)
             misses += miss
-            calls.append([idx, c['t'] - t0, round(ctx_of(c) / 1000), 1 if miss else 0])
+            s = samples.setdefault((idx, bucket(c['t'] - t0)), [0, 0, 0.0])
+            s[0] = max(s[0], ctx_of(c))
+            s[1] += 1 if miss else 0
+            s[2] += units_of(c)
         gaps = [b['t'] - a_['t'] for a_, b in zip(cs, cs[1:])]
-        row = dict(k=kind, label=label, first=cs[0]['t'] - t0, last=cs[-1]['t'] - t0, calls=len(cs),
+        row = dict(k=kind, label=label, first=bucket(cs[0]['t'] - t0), last=bucket(cs[-1]['t'] - t0), calls=len(cs),
                    start=round(ctx_of(cs[0]) / 1000), peak=round(max(ctx_of(c) for c in cs) / 1000),
                    units=round(sum(units_of(c) for c in cs)), work=round(sum(g for g in gaps if g <= 1800) / 60),
-                   opened=bool(a['created']))
+                   opened=bool(a['created']),
+                   # The model family this agent's calls ran on, e.g. "opus 5.5".
+                   model=collections.Counter(model_name(c['model']) for c in cs).most_common(1)[0][0])
         if pr:
             row['pr'] = pr
         if rnd:
@@ -337,7 +363,8 @@ def session_out(n, cfg, agents, usd, estimated, prs):
         if misses:
             row['misses'] = misses
         rows.append(row)
-    calls.sort(key=lambda c: c[1])
+    calls = sorted(([idx, t, round(ctx / 1000), miss, round(units / 100)] for (idx, t), (ctx, miss, units) in samples.items()),
+                   key=lambda c: (c[1], c[0]))
     pr_rows = []
     for x in real:
         p = prs[x]
@@ -349,20 +376,35 @@ def session_out(n, cfg, agents, usd, estimated, prs):
     opened = [p for p in pr_rows if 0 <= p['opened'] <= t1 - t0]
     by_type = collections.Counter(r['k'] for r in rows[1:])
     return dict(
-        label=f'Session {n}', project='Project ' + 'ABCDEFGH'[n - 1], start=t0, end=t1,
+        label=f'Session {n}', project=cfg['label'], start=t0, end=t1,
         usd=round(usd), usdEstimated=estimated, byType=dict(by_type),
         prsOpened=len(opened), prsMerged=sum(1 for p in opened if p['merged'] is not None),
         rounds=by_type.get('responder', 0), prsReviewed=len(rounds), prsWorked=len(pr_rows),
-        users=[t - t0 for t in lead['users']],
-        compacts=[[t - t0, round(pre / 1000)] for t, pre in sorted({(t, pre) for t, pre in lead['compacts']})],
-        limits=sorted({t - t0 for a in agents for t in a['limits']}),
+        users=sorted({bucket(t - t0) for t in lead['users']}),
+        compacts=[[bucket(t - t0), round(pre / 1000)] for t, pre in sorted({(t, pre) for t, pre in lead['compacts']})],
+        limits=sorted({bucket(t - t0) for a in agents for t in a['limits']}),
         agents=rows, calls=calls, prs=pr_rows)
+
+
+def outcome(agents, usd, prs):
+    """What one session delivered: merged PRs its workers opened, their size, and its busy hours."""
+    calls = sorted(c['t'] for a in agents for c in a['calls'])
+    quiet = sum(b - a for a, b in zip(calls, calls[1:]) if b - a >= 1800)
+    opened = {n for a in agents for n in a['created'] if n in prs}
+    merged = {n for n in opened if prs[n]['mergedAt']}
+    return collections.Counter(usd=usd, opened=len(opened), merged=len(merged),
+                               lines=sum(prs[n]['additions'] + prs[n]['deletions'] for n in merged),
+                               busyHours=(calls[-1] - calls[0] - quiet) / 3600, messages=len(agents[0]['users']))
 
 
 def main():
     cfg = json.load(open(os.path.join(HERE, 'sessions.local.json')))
     groups = dict(foreman=[], baseline=[])
     sessions, usd_total = [], 0.0
+    letters, pr_cache = {}, {}
+    # Outcomes in the baseline's repository, so the comparison is like for like.
+    base_repo = next(c.get('repo') for c in cfg['sessions'] if c['kind'] == 'baseline')
+    same = dict(foreman=collections.Counter(), baseline=collections.Counter())
     for c in cfg['sessions']:
         agents, usd, estimated = load(c)
         groups[c['kind']] += agents
@@ -370,12 +412,19 @@ def main():
         print(f"{c['kind']:9} workers {m['workers']:4} calls {m['calls']:6} hit {m['cacheHit']:.3f} "
               f"rewrites {m['missShare']:.3f} start {m['startMedian']:6} peak {m['peakMedian']:7}/{m['peakMax']:7} "
               f"lead {m['leadShare']:.2f} avg {m['leadAvgCtx']:7} own {m['leadOwnWork']:.2f} ${usd:.0f}")
+        repo = c.get('repo')
+        if repo not in pr_cache:
+            pr_cache[repo] = gh_prs(repo)
+        if repo == base_repo:
+            same[c['kind']] += outcome(agents, usd, pr_cache[repo])
         if c['kind'] == 'foreman':
             usd_total += usd
-            sessions.append(session_out(len(sessions) + 1, c, agents, usd, estimated, gh_prs(c.get('repo'))))
+            # One letter per repository, in the order the repositories first appear.
+            c['label'] = 'Project ' + 'ABCDEFGH'[letters.setdefault(repo, len(letters))]
+            sessions.append(session_out(len(sessions) + 1, c, agents, usd, estimated, pr_cache[repo]))
     score = dict(foreman=measure(groups['foreman']), baseline=measure(groups['baseline']))
     f = score['foreman']
-    f.update(sessions=len(sessions), usd=round(usd_total),
+    f.update(sessions=len(sessions), repos=len(letters), usd=round(usd_total),
              hours=round(sum(s['end'] - s['start'] for s in sessions) / 3600),
              prsOpened=sum(s['prsOpened'] for s in sessions), prsMerged=sum(s['prsMerged'] for s in sessions),
              rounds=sum(s['rounds'] for s in sessions), prsReviewed=sum(s['prsReviewed'] for s in sessions),
@@ -383,8 +432,18 @@ def main():
              leadCompactions=sum(len(s['compacts']) for s in sessions),
              byType=dict(sum((collections.Counter(s['byType']) for s in sessions), collections.Counter())))
     score['baseline']['sessions'] = sum(1 for c in cfg['sessions'] if c['kind'] == 'baseline')
+    score['sameRepo'] = {k: {key: round(v, 2) for key, v in c.items()} for k, c in same.items()}
+    score['sameRepo']['project'] = 'Project ' + 'ABCDEFGH'[letters[base_repo]] if base_repo in letters else None
+    print('same repository', score['sameRepo'])
     version = open(os.path.join(HERE, '..', 'VERSION')).read().strip()
-    data = dict(generated=datetime.now(timezone.utc).strftime('%Y-%m-%d'), weights=W, version=version, score=score, sessions=sessions)
+    # Short sessions (a resume that sent a handful of workers) and sessions that opened few pull
+    # requests count in the totals but get no timeline of their own; the rest are numbered in order.
+    shown = [s for s in sessions if len(s['agents']) - 1 >= MIN_WORKERS_SHOWN and s['prsOpened'] >= MIN_PRS_SHOWN]
+    shown.sort(key=lambda s: s['start'])
+    for n, s in enumerate(shown, 1):
+        s['label'] = f'Session {n}'
+    f['sessionsShown'] = len(shown)
+    data = dict(generated=datetime.now(timezone.utc).strftime('%Y-%m-%d'), weights=W, version=version, score=score, sessions=shown)
     out = os.path.join(HERE, 'data.json')
     with open(out, 'w') as fh:
         json.dump(data, fh, separators=(',', ':'))

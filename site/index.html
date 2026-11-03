@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Spline+Sans+Mono:wght@400;500;600&display=swap">
 <title>Foreman: one lead, a crew of workers, a warm cache</title>
-<meta name="description" content="Foreman runs a coding project in Kimi Code with one lead agent and a crew of worker agents, and keeps every agent's context small and its cache warm.">
+<meta name="description" content="Foreman runs a coding project with one lead agent and a crew of worker agents, in any coding agent with skills and sub-agents, and keeps every agent's context small and its cache warm.">
 <style>
 :root {
   --page: #f6f4ee;
@@ -29,10 +32,12 @@
   --mostly: #b97a00;
   --missed: #d03b3b;
   --tip-bg: #1f2328;
+  --quiet: rgba(31, 35, 40, 0.07);
   --tip-ink: #f6f4ee;
   --tip-muted: #a9adb3;
-  --serif: Georgia, "Iowan Old Style", "Times New Roman", serif;
-  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "Spline Sans Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -57,6 +62,7 @@
     --mostly: #e0a100;
     --missed: #ec6a6a;
     --tip-bg: #f0f3f6;
+    --quiet: rgba(240, 243, 246, 0.07);
     --tip-ink: #1f2328;
     --tip-muted: #5b5f65;
   }
@@ -67,8 +73,9 @@ body {
   margin: 0;
   background: var(--page);
   color: var(--ink);
-  font: 400 17px/1.6 var(--serif);
+  font: 400 16.5px/1.6 var(--sans);
   -webkit-font-smoothing: antialiased;
+  font-variant-numeric: tabular-nums;
 }
 .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px 80px; }
 @media (max-width: 600px) { .wrap { padding: 0 16px 56px; } }
@@ -81,13 +88,13 @@ a { color: inherit; text-decoration-color: var(--axis); text-underline-offset: 3
 a:hover { text-decoration-color: var(--ink); }
 :focus-visible { outline: 2px solid var(--hat-deep); outline-offset: 2px; border-radius: 2px; }
 .mono { font-family: var(--mono); }
-.kicker { font: 500 11.5px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
+.kicker { font: 500 11.5px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); }
 
 /* Hazard stripe: the one construction-site mark on the page. */
 .stripe { height: 8px; background: repeating-linear-gradient(-45deg, var(--hat) 0 14px, var(--ink) 14px 28px); }
 
 /* Top bar */
-.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; font: 400 13px/1 var(--mono); color: var(--ink-2); }
+.bar { display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 18px 0; font: 400 13px/1 var(--sans); color: var(--ink-2); }
 .bar nav { display: flex; flex-wrap: wrap; gap: 6px 18px; }
 .bar a { text-decoration: none; }
 .bar a:hover { color: var(--ink); text-decoration: underline; }
@@ -99,7 +106,7 @@ a:hover { text-decoration-color: var(--ink); }
 .cta { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
 .btn {
   appearance: none; border: 1px solid var(--ring); background: var(--surface); color: var(--ink);
-  font: 500 13px/1 var(--mono); padding: 11px 16px; border-radius: 5px; cursor: pointer; text-decoration: none;
+  font: 500 13px/1 var(--sans); padding: 11px 16px; border-radius: 5px; cursor: pointer; text-decoration: none;
 }
 .btn:hover { background: var(--wash); }
 .btn.primary { background: var(--ink); color: var(--page); border-color: var(--ink); }
@@ -115,8 +122,8 @@ a:hover { text-decoration-color: var(--ink); }
   .stat:nth-child(n+3) { border-top: 1px solid var(--hair); }
 }
 .stat b { font: 400 clamp(38px, 6vw, 58px)/1 var(--serif); letter-spacing: -0.02em; font-variant-numeric: lining-nums; }
-.stat span { font: 400 12.5px/1.4 var(--mono); color: var(--muted); }
-.substats { display: flex; flex-wrap: wrap; gap: 6px 26px; padding-top: 14px; font: 400 12.5px/1.5 var(--mono); color: var(--muted); }
+.stat span { font: 400 12.5px/1.4 var(--sans); color: var(--muted); }
+.substats { display: flex; flex-wrap: wrap; gap: 6px 26px; padding-top: 14px; font: 400 12.5px/1.5 var(--sans); color: var(--muted); }
 .substats b { color: var(--ink); font-weight: 600; }
 
 section { padding-top: 76px; display: grid; gap: 20px; }
@@ -127,8 +134,20 @@ section { padding-top: 76px; display: grid; gap: 20px; }
 .chart { width: 100%; min-width: 0; position: relative; }
 .chart svg { display: block; overflow: visible; }
 .scroll-x { overflow-x: auto; overscroll-behavior-x: contain; }
-.note { font: 400 12px/1.5 var(--mono); color: var(--muted); }
-.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 12px/1.3 var(--mono); color: var(--ink-2); align-items: center; }
+.note { font: 400 12px/1.5 var(--sans); color: var(--muted); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font: 400 13px/1.3 var(--sans); color: var(--ink-2); align-items: center; }
+/* Two columns: agents above marks on the left, the sample PR on the right. */
+.legend-rows { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "agents pr" "marks pr"; gap: 8px; width: 100%; }
+.lg-agents { grid-area: agents; }
+.lg-marks { grid-area: marks; }
+.lg-pr { grid-area: pr; }
+.legend-group.lg-pr { grid-template-columns: 1fr; align-content: start; }
+@media (max-width: 900px) { .legend-rows { grid-template-columns: 1fr; grid-template-areas: "agents" "pr" "marks"; } }
+.legend-group { border: 1px solid var(--hair); border-radius: 6px; padding: 8px 12px; display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 6px 10px; align-items: center; }
+@media (max-width: 600px) { .legend-group { grid-template-columns: 1fr; } }
+.legend-cap { font: 600 11px/1.2 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.legend.pr-sample { gap: 10px; }
+.note-lbl { font: 400 12px var(--sans); fill: var(--ink-2); }
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { display: inline-block; width: 12px; height: 10px; border-radius: 2px; }
 .legend i.line { height: 10px; width: 2px; border-radius: 1px; }
@@ -139,15 +158,15 @@ section { padding-top: 76px; display: grid; gap: 20px; }
 .card { border: 1px solid var(--ring); border-radius: 6px; background: var(--surface); overflow: hidden; }
 .rule { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr) 118px; gap: 8px 20px; padding: 18px 20px; align-items: start; }
 .rule + .rule { border-top: 1px solid var(--hair); }
-.rule.head { padding-block: 10px; font: 500 11.5px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--wash); }
+.rule.head { padding-block: 10px; font: 500 11.5px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--wash); }
 .rule h3 { margin-bottom: 3px; }
 .rule .why { font-size: 14.5px; line-height: 1.45; color: var(--ink-2); }
 .rule .val { display: grid; gap: 2px; }
 .rule .val b { font: 400 30px/1.05 var(--serif); font-variant-numeric: lining-nums; }
 .rule .val.before b { color: var(--muted); }
-.rule .val span { font: 400 12px/1.4 var(--mono); color: var(--muted); }
+.rule .val span { font: 400 12px/1.4 var(--sans); color: var(--muted); }
 .rule .val .tag { display: none; }
-.verdict { font: 600 12px/1 var(--mono); letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 7px; padding-top: 9px; white-space: nowrap; }
+.verdict { font: 600 12px/1 var(--sans); letter-spacing: 0.04em; display: inline-flex; align-items: center; gap: 7px; padding-top: 9px; white-space: nowrap; }
 .verdict::before { content: ""; flex: none; width: 9px; height: 9px; border-radius: 50%; background: currentColor; }
 .verdict.held { color: var(--held); }
 .verdict.mostly { color: var(--mostly); }
@@ -165,9 +184,22 @@ section { padding-top: 76px; display: grid; gap: 20px; }
 .mix i { display: block; height: 100%; min-width: 3px; }
 
 /* Controls */
+/* The timeline controls use the text face, not the mono one. */
+.controls .tabs button, .controls .btn, .controls .switch, .controls .note { font-family: var(--sans); font-size: 14px; }
+.controls .kicker { font-family: var(--sans); font-size: 12px; font-weight: 600; }
+.switch { display: inline-flex; align-items: center; gap: 8px; font: 500 13px/1 var(--sans); color: var(--ink-2); cursor: pointer; user-select: none; }
+.switch input { appearance: none; margin: 0; width: 30px; height: 18px; border-radius: 9px; background: var(--axis); position: relative; cursor: pointer; transition: background 120ms; }
+.switch input::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: var(--surface); transition: transform 120ms; }
+.switch input:checked { background: var(--hat-deep); }
+.switch input:checked::after { transform: translateX(12px); }
+.switch input:focus-visible { outline: 2px solid var(--hat-deep); outline-offset: 2px; }
 .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.tabs { display: inline-flex; gap: 2px; padding: 3px; background: var(--wash); border-radius: 6px; }
-.tabs button { appearance: none; border: 0; background: transparent; color: var(--ink-2); font: 500 13px/1 var(--mono); padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.tabs { display: inline-flex; flex-wrap: wrap; gap: 2px; padding: 3px; background: var(--wash); border-radius: 6px; }
+.tab-groups { display: grid; gap: 8px; flex-basis: 100%; }
+.tab-group { display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 12px; align-items: center; }
+.tab-group .tabs { justify-self: start; }
+@media (max-width: 600px) { .tab-group { grid-template-columns: 1fr; gap: 4px; } }
+.tabs button { appearance: none; border: 0; background: transparent; color: var(--ink-2); font: 500 13px/1 var(--sans); padding: 8px 12px; border-radius: 4px; cursor: pointer; }
 .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 0 0 1px var(--ring); }
 .tabs button:hover { color: var(--ink); }
 .findings { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px 28px; }
@@ -179,42 +211,44 @@ section { padding-top: 76px; display: grid; gap: 20px; }
 table { border-collapse: collapse; width: 100%; font-size: 15.5px; line-height: 1.45; }
 th, td { padding: 11px 16px; text-align: left; border-bottom: 1px solid var(--hair); vertical-align: top; }
 tr:last-child td { border-bottom: 0; }
-th { font: 500 11.5px/1.3 var(--mono); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--wash); white-space: nowrap; }
-td.num { font: 400 13px/1.6 var(--mono); white-space: nowrap; text-align: right; }
+th { font: 500 11.5px/1.3 var(--sans); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); background: var(--wash); white-space: nowrap; }
+td.num { font: 400 13px/1.6 var(--sans); white-space: nowrap; text-align: right; }
 th.num { text-align: right; }
-td .name { display: inline-flex; align-items: center; gap: 8px; font-style: italic; white-space: nowrap; }
+td .name { font-family: var(--serif); display: inline-flex; align-items: center; gap: 8px; font-style: italic; white-space: nowrap; }
 td .name i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
-td.meta { font: 400 13px/1.6 var(--mono); color: var(--ink-2); white-space: nowrap; }
+td.meta .sub { color: var(--muted); font-size: 11.5px; }
+td.meta { font: 400 13px/1.6 var(--sans); color: var(--ink-2); white-space: nowrap; }
 .rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px 32px; }
 .rules div { border-top: 1px solid var(--hair); padding-top: 12px; font-size: 15.5px; line-height: 1.5; color: var(--ink-2); }
-.rules b { display: block; color: var(--ink); font-weight: 400; font-style: italic; font-size: 18px; margin-bottom: 3px; }
+.rules b { font-family: var(--serif); display: block; color: var(--ink); font-weight: 400; font-style: italic; font-size: 18px; margin-bottom: 3px; }
 
 /* Install */
 .steps { display: grid; gap: 12px; counter-reset: step; }
+#install h3 { margin-top: 8px; }
 .snippet { border: 1px solid var(--ring); border-radius: 6px; background: var(--surface); overflow: hidden; }
-.snippet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--hair); font: 400 12.5px/1.4 var(--mono); color: var(--ink-2); }
+.snippet-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--hair); font: 400 12.5px/1.4 var(--sans); color: var(--ink-2); }
 .snippet-head::before { counter-increment: step; content: counter(step); font-weight: 600; color: var(--hat-deep); margin-right: 10px; }
 .snippet-head span { flex: 1; }
 .snippet pre { margin: 0; padding: 12px 14px; font: 400 13px/1.6 var(--mono); white-space: pre-wrap; overflow-wrap: anywhere; }
-.copy { appearance: none; border: 1px solid var(--ring); background: transparent; color: var(--ink-2); font: 500 11.5px/1 var(--mono); padding: 6px 9px; border-radius: 4px; cursor: pointer; }
+.copy { appearance: none; border: 1px solid var(--ring); background: transparent; color: var(--ink-2); font: 500 11.5px/1 var(--sans); padding: 6px 9px; border-radius: 4px; cursor: pointer; }
 .copy:hover { background: var(--wash); color: var(--ink); }
 
 /* Tooltip */
-#tip { position: fixed; z-index: 20; pointer-events: none; max-width: 320px; background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 10px 12px; font: 400 12px/1.45 var(--mono); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
+#tip { position: fixed; z-index: 20; pointer-events: none; max-width: 320px; background: var(--tip-bg); color: var(--tip-ink); border-radius: 6px; padding: 10px 12px; font: 400 12px/1.45 var(--sans); box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2); }
 #tip .tt { font: 400 15px/1.3 var(--serif); font-style: italic; margin-bottom: 5px; }
 #tip .row { display: flex; align-items: baseline; gap: 8px; }
 #tip .row b { font-weight: 600; white-space: nowrap; }
 #tip .row span { color: var(--tip-muted); }
 
 /* SVG text */
-.axis text, .lbl { font: 400 11px var(--mono); fill: var(--muted); }
+.axis text, .lbl { font: 400 11px var(--sans); fill: var(--muted); }
 .axis path, .axis line { stroke: var(--axis); }
-.lbl-ink { font: 500 11px var(--mono); fill: var(--ink-2); }
-.agent-lbl { font: 400 10.5px var(--mono); fill: var(--ink-2); pointer-events: none; }
+.lbl-ink { font: 500 11px var(--sans); fill: var(--ink-2); }
+.agent-lbl { font: 400 10.5px var(--sans); fill: var(--ink-2); pointer-events: none; }
 
 footer { margin-top: 88px; padding-top: 20px; border-top: 1px solid var(--ink); display: grid; gap: 10px; font-size: 14.5px; line-height: 1.55; color: var(--ink-2); max-width: 78ch; }
 footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
-.error { padding: 16px; border: 1px solid var(--missed); border-radius: 6px; font: 400 14px/1.5 var(--mono); }
+.error { padding: 16px; border: 1px solid var(--missed); border-radius: 6px; font: 400 14px/1.5 var(--sans); }
 </style>
 </head>
 <body>
@@ -223,7 +257,7 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
   <div class="bar">
     <span>foreman <span id="version"></span></span>
     <nav aria-label="Sections">
-      <a href="#record">Record</a><a href="#sessions">Sessions</a><a href="#context">Context</a><a href="#crew">Crew</a><a href="#install">Install</a><a href="https://github.com/chengluyu/foreman">GitHub</a>
+      <a href="#sessions">Sessions</a><a href="#record">Record</a><a href="#context">Context</a><a href="#crew">Crew</a><a href="#install">Install</a><a href="https://github.com/chengluyu/foreman">GitHub</a>
     </nav>
   </div>
 
@@ -232,7 +266,7 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
       <source media="(prefers-color-scheme: dark)" srcset="logo-dark.svg">
       <img src="logo.svg" width="580" height="266" alt="foreman. Sing of the one who sends the crew, and keeps the cache warm.">
     </picture>
-    <p class="lede">Foreman runs a coding project in Kimi Code with one lead agent and a crew of workers. The lead plans and writes a brief for each task. A worker takes one brief, opens one pull request, and stops. Every agent stays small and its cache stays warm, so your usage limit lasts the week.</p>
+    <p class="lede">Foreman runs a coding project with one lead agent and a crew of workers, in any coding agent that has skills and sub-agents, such as Claude Code or Kimi Code. The lead plans and writes a brief for each task. A worker takes one brief, opens one pull request, and stops. Every agent stays small and its cache stays warm, so your usage limit lasts the week.</p>
     <div class="cta">
       <a class="btn primary" href="#install">Install</a>
       <a class="btn" href="https://github.com/chengluyu/foreman">Read the source</a>
@@ -242,10 +276,29 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
   <div class="stats" id="stats"></div>
   <div class="substats" id="substats"></div>
 
+  <section id="sessions">
+    <div class="sec-head">
+      <div class="kicker">The sessions</div>
+      <h2>Every worker, <em>hour by hour</em></h2>
+      <p>Each block is one agent, and its height is the context it re-read on every call. The lead is the long grey band. The workers under it are short and low, which is the point. Hold Ctrl or ⌘ and scroll to zoom, drag to pan. Projects, pull requests and tasks are anonymous.</p>
+    </div>
+    <div class="controls">
+      <div class="tab-groups" id="tl-tabs"></div>
+      <button class="btn" id="tl-reset" type="button">Reset zoom</button>
+      <label class="switch"><input type="checkbox" id="tl-quiet" role="switch" checked><span>Hide quiet hours</span></label>
+    </div>
+    <div class="panel">
+      <div class="panel-head"><div class="legend-rows" id="tl-legend"></div></div>
+      <div class="scroll-x"><div class="chart" id="tl-chart"></div></div>
+      <p class="note">Row height is context: 0 to 1M tokens for the lead, 0 to 600k for workers. Zoom in to see a single worker. Times are in your time zone.</p>
+    </div>
+    <div class="findings" id="tl-findings"></div>
+  </section>
+
   <section id="record">
     <div class="sec-head">
       <div class="kicker">The record</div>
-      <h2>Four rules, <em>measured</em></h2>
+      <h2>Where it <em>pays off</em></h2>
       <p id="record-lede"></p>
     </div>
     <div class="card" id="card"></div>
@@ -256,23 +309,6 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
     </div>
   </section>
 
-  <section id="sessions">
-    <div class="sec-head">
-      <div class="kicker">The sessions</div>
-      <h2>Every worker, <em>hour by hour</em></h2>
-      <p>Each block is one agent, and its height is the context it re-read on every call. The lead is the long grey band. The workers under it are short and low, which is the point. Hold Ctrl or ⌘ and scroll to zoom, drag to pan. Projects, pull requests and tasks are anonymous.</p>
-    </div>
-    <div class="controls">
-      <div class="tabs" role="tablist" id="tl-tabs" aria-label="Session"></div>
-      <button class="btn" id="tl-reset" type="button">Reset zoom</button>
-    </div>
-    <div class="panel">
-      <div class="panel-head"><div class="legend" id="tl-legend"></div></div>
-      <div class="scroll-x"><div class="chart" id="tl-chart"></div></div>
-      <p class="note">Row height is context: 0 to 1M tokens for the lead, 0 to 600k for workers. Zoom in to see a single worker. Times are in your time zone.</p>
-    </div>
-    <div class="findings" id="tl-findings"></div>
-  </section>
 
   <section id="context">
     <div class="sec-head">
@@ -290,17 +326,17 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
     <div class="sec-head">
       <div class="kicker">The crew</div>
       <h2>Five kinds of worker, <em>one job each</em></h2>
-      <p>You type <span class="mono">/skill:foreman</span> in a session — <span class="mono">/foreman</span> works too — and that session becomes the lead. It does not write code, debug or run tests. It sends one of these, with a brief. All of them run on the session's secondary model, which you set once with <span class="mono">/secondary-model</span>.</p>
+      <p>You start the Foreman skill in a session, and that session becomes the lead. It does not write code, debug or run tests. It sends one of these, with a brief. The model column shows what these workers ran on; each profile sets a default, and a repository can override it.</p>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Worker</th><th>Job</th><th class="num">Sent</th><th class="num">Median peak</th></tr></thead>
+        <thead><tr><th>Worker</th><th>Job</th><th>Model, effort</th><th class="num">Sent</th><th class="num">Median peak</th></tr></thead>
         <tbody id="crew-body"></tbody>
       </table>
     </div>
     <div class="rules">
       <div><b>One task, one PR, one worker</b>Follow-up work after review goes to a fresh worker, not back to the one that has grown.</div>
-      <div><b>Workers start small</b>Each profile lists only the tools that worker needs. On the Claude Code edition that measured a 10k-token start, against 46k for a general-purpose agent.</div>
+      <div><b>Workers start small</b>Each profile lists only the tools that worker needs. Measured in Claude Code, that is a 10k-token start, against 46k for a general-purpose agent.</div>
       <div><b>Budgets live in the brief</b>No step caps and no per-worker model; the brief says in prose how far a worker may go.</div>
       <div><b>A handover file replaces old chats</b>A new lead starts from one file per repository, not from a transcript.</div>
     </div>
@@ -309,15 +345,23 @@ footer ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
   <section id="install">
     <div class="sec-head">
       <div class="kicker">Setting it up</div>
-      <h2>One command, then <em>/skill:foreman</em></h2>
-      <p>You need Kimi Code. The plugin carries the skill and the five worker profiles.</p>
+      <h2>Install it in <em>your agent</em></h2>
+      <p>Foreman is a few skills and five worker profiles in plain Markdown. Any coding agent that loads skills and sub-agents can run it. Here are two.</p>
     </div>
+    <h3>Claude Code</h3>
     <div class="steps">
-      <div class="snippet"><div class="snippet-head"><span>Install the plugin, inside Kimi Code</span><button class="copy" type="button">Copy</button></div><pre>/plugins install https://github.com/chengluyu/foreman</pre></div>
+      <div class="snippet"><div class="snippet-head"><span>Clone to ~/.foreman, where the skills read their files from</span><button class="copy" type="button">Copy</button></div><pre>git clone https://github.com/chengluyu/foreman.git ~/.foreman</pre></div>
+      <div class="snippet"><div class="snippet-head"><span>Install the skills and the worker profiles</span><button class="copy" type="button">Copy</button></div><pre>cp -R ~/.foreman/skills/* ~/.claude/skills/ &amp;&amp; cp ~/.foreman/agents/foreman-*.md ~/.claude/agents/</pre></div>
+      <div class="snippet"><div class="snippet-head"><span>Give workers the one-hour cache, in ~/.claude/settings.json</span><button class="copy" type="button">Copy</button></div><pre>{ "subagentPromptCacheTtl": "1h" }</pre></div>
+      <div class="snippet"><div class="snippet-head"><span>Start a lead session, in any repository</span><button class="copy" type="button">Copy</button></div><pre>/foreman</pre></div>
+    </div>
+    <h3>Kimi Code</h3>
+    <div class="steps">
+      <div class="snippet"><div class="snippet-head"><span>Install the plugin</span><button class="copy" type="button">Copy</button></div><pre>/plugins install https://github.com/chengluyu/foreman</pre></div>
       <div class="snippet"><div class="snippet-head"><span>Reload, so the skill and the workers register</span><button class="copy" type="button">Copy</button></div><pre>/reload</pre></div>
       <div class="snippet"><div class="snippet-head"><span>Start a lead session, in any repository</span><button class="copy" type="button">Copy</button></div><pre>/skill:foreman</pre></div>
     </div>
-    <p class="note">From a local checkout, /plugins install &lt;path&gt; does the same. Or by hand: copy skills/foreman/ to ~/.kimi-code/skills/foreman/ and agents/foreman-*.md to ~/.agents/agents/. The first time in a repository, the lead asks four questions and writes the answers into the repository's handover file.</p>
+    <p class="note">Already cloned somewhere else? Link it instead: ln -s /path/to/your/foreman ~/.foreman. Another agent: copy the skills/ folders to wherever it loads skills, and agents/foreman-*.md to wherever it loads sub-agents. The first time in a repository, the lead asks four questions and writes the answers into the repository's handover file.</p>
   </section>
 
   <footer>

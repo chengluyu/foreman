@@ -90,9 +90,8 @@ The rules behind them:
 Two parts are optional. If a review bot such as Codex must approve your pull
 requests, the lead runs a watcher and sends a responder for each round, up to a
 cap. And `mod/foreman-board` is a Claude Code mod that runs inside the lead's
-session: it shows every worker's steps, context and cost as they happen, refuses
-a worker over the limit or a brief without rules, and compacts the lead when it
-passes 200k tokens.
+session: it shows how many workers are running and every worker's steps, context
+and cost as they happen.
 
 ## How the first run went
 

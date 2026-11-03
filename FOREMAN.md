@@ -20,7 +20,7 @@ merges.
 | `lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/foreman-*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
 | `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
-| `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a context band, a spawn guard, per-brief effort and auto-compact. See "The foreman-board mod". |
+| `mod/foreman-board/` | Optional Claude Code mod for lead sessions: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
 | `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
 | `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
@@ -256,25 +256,19 @@ Standing rules, the repository's Foreman settings:
 ## The foreman-board mod
 
 Optional, and early access: it needs Claude Code 2.1.286 or later, and the mod API
-may change. It runs inside the lead's session and does five things:
+may change. It runs inside the lead's session and does three things:
 - **Band:** one line above the prompt with the lead's context, workers running and
   done, their estimated cost, and a count of workers with warnings.
-- **Board** (`/foreman-board`, opened by `/foreman`): each worker's steps against
+- **Board** (`/foreman-board`, opened by the lead commands): each worker's steps against
   its cap, context, cost, age and last command, with warnings for a context over
   150k, 80% of the step cap, 4 quiet minutes or a command repeated 3 times. It also
   lists review rounds per PR.
-- **Spawn guard:** refuses a `foreman-*` worker when the limit is already running
-  (5, or `- Max workers: N` in the handover's Standing rules) or when its brief has
-  no Rules section although the handover has worker rules. It moves clerks and
-  scouts to Opus when Sonnet workers aren't allowed.
 - **Effort per brief:** applies a brief's `Effort:` line to that worker.
-- **Auto-compact:** after a turn that ends above 200k tokens, it compacts the lead
-  between turns, keeping the handover path, running workers, PRs and open
-  decisions. `/foreman-autocompact off`, `on` or `250k` changes it.
 
 To load it in every session, add its folder to `CLAUDE_CODE_PLUGIN_DIRS` in the
-`env` block of `~/.claude/settings.json`. It acts only on `foreman-*` workers, and
-auto-compact only in a session that ran `/foreman`.
+`env` block of `~/.claude/settings.json`. It switches on in a session that ran
+`/foreman`, `/foreman-create` or `/foreman-resume`, or once a Foreman worker is
+sent, and tracks only Foreman workers. It never refuses a spawn.
 
 ## Briefs
 
@@ -436,8 +430,7 @@ call, so a lead should carry only its own line.
   Repositories without it keep one `HANDOVER.md` and work as before.
 - To move an existing `HANDOVER.md` over: create the topic, move the topic's
   sections across and the Standing rules and Environment into `_shared.md`, and
-  leave a one-line pointer in the old file. The foreman-board mod reads
-  `_shared.md` first and `HANDOVER.md` otherwise.
+  leave a one-line pointer in the old file.
 
 ## Handover and new sessions
 

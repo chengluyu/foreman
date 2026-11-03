@@ -101,9 +101,8 @@ cost before. Workers started at about 10k tokens and none went above 223k.
 What didn't: the lead grew to 809k tokens before it was compacted, and took 41% of
 the session's cost. The rule said the lead should ask me to compact at 200k. It
 didn't ask, and when I tried, a `/compact` typed while the lead was busy arrived as
-plain text. The lead also posted 126 messages, far more than I could read. On
-Claude Code I answered that with a mod that auto-compacts the lead; this edition
-has no mods, so the 200k rule is yours to enforce again.
+plain text. The lead also posted 126 messages, far more than I could read. This
+edition has no mods, so the 200k rule is yours to enforce.
 
 [`CHANGELOG.md`](CHANGELOG.md) keeps this record for each version: what changed,
 what to check when testing, and what was measured.

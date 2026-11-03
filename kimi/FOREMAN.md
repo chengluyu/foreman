@@ -437,9 +437,8 @@ If you used Foreman on Claude Code, this is what to expect here:
   model once per machine with `/secondary-model`.
 - **Step caps are budgets, not limits.** The profiles' `maxTurns` caps are gone;
   each profile now states its step budget in prose and stops itself.
-- **The foreman-board mod does not exist here.** No live worker board, no spawn
-  guard, no auto-compact. The lead counts running workers itself, and you compact
-  it at natural breaks as before.
+- **The foreman-board mod does not exist here.** No live worker board. The lead
+  counts running workers itself, and you compact it at natural breaks as before.
 - **The skill is invoked, not injected.** `/skill:foreman` tells the lead to run
   the start script and read `lead.md`, instead of pre-expanding their contents.
   The skill folder is self-contained, so no file refers to where you cloned the

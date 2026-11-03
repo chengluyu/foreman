@@ -146,9 +146,12 @@ is in use, whether Sonnet workers are allowed, which builder profile to use, and
 which rules every worker must follow. It writes the answers into the handover.
 After that it tells you in five lines where things stand.
 
-The mod is early access and needs Claude Code 2.1.286 or later. To load it, add
-`mod/foreman-board` to `CLAUDE_CODE_PLUGIN_DIRS` in the `env` block of
-`~/.claude/settings.json`.
+The mod is early access and needs Claude Code 2.1.286 or later. Install it from the
+same marketplace:
+
+```bash
+claude plugin install foreman-board@foreman
+```
 
 ## Where to read more
 

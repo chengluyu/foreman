@@ -267,8 +267,8 @@ may change. It runs inside the lead's session and does three things:
   lists review rounds per PR.
 - **Effort per brief:** applies a brief's `Effort:` line to that worker.
 
-To load it in every session, add its folder to `CLAUDE_CODE_PLUGIN_DIRS` in the
-`env` block of `~/.claude/settings.json`. It switches on in a session that ran
+Install it from the same marketplace with
+`claude plugin install foreman-board@foreman`. It switches on in a session that ran
 `/foreman`, `/foreman-create` or `/foreman-resume`, or once a Foreman worker is
 sent, and tracks only Foreman workers. It never refuses a spawn.
 

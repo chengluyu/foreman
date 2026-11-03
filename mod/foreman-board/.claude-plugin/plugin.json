@@ -2,5 +2,8 @@
   "name": "foreman-board",
   "version": "0.1.0",
   "description": "Foreman lead helper: a live worker board, a band with the lead's context and the workers running, and per-brief effort",
+  "author": {
+    "name": "Luyu Cheng"
+  },
   "types": "./types/index.d.ts"
 }

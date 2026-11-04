@@ -151,7 +151,7 @@ The board mod is early access and needs Claude Code 2.1.286 or later.
 
 - [`FOREMAN.md`](FOREMAN.md) is the full guide: how the cost works, and the
   measurement behind each rule.
-- [`lead.md`](lead.md) is what the lead actually loads. It is short on purpose,
+- [`lead/lead.md`](lead/lead.md) is what the lead actually loads. It is short on purpose,
   because the lead re-reads it on every step.
 - [`agents/`](agents) holds the worker profiles.
 

@@ -6,7 +6,7 @@ repository's PRs merge only after the bot approves them.
 ## Settings
 These are the defaults; the handover's Standing rules can override them.
 - Bot: Codex. Trigger comment: `@codex review`.
-- Watcher: `{foreman}/review-wait.sh`. For another bot, set
+- Watcher: `{foreman}/lead/review-wait.sh`. For another bot, set
   `BOT` and `PASS_TEXT` in its environment.
 - Round cap: 5.
 

@@ -12,7 +12,8 @@
 #
 # The skills run this script instead of cat because Claude Code only lets a skill cat
 # files inside the session's working directories, and a plugin lives elsewhere.
-# {foreman} in lead.md and review-bot.md becomes this folder's path.
+# {foreman} in lead.md and review-bot.md becomes the plugin's path, the folder above
+# this one.
 #
 # Handovers live in the repository's main checkout, which every worktree shares, and
 # are kept out of git through the common git directory's info/exclude. A problem is
@@ -20,10 +21,11 @@
 # it to the lead instead of failing to load.
 set -eu
 dir=$(cd "$(dirname "$0")" && pwd)
+plugin=$(dirname "$dir")
 mode=${1:-single}
 topic=${2:-}
 
-show() { sed "s|{foreman}|$dir|g" "$dir/$1"; }
+show() { sed "s|{foreman}|$plugin|g" "$dir/$1"; }
 if [ "$mode" = lead ]; then show lead.md; exit 0; fi
 
 root=$(git worktree list --porcelain 2>/dev/null | sed -n '1s/^worktree //p')

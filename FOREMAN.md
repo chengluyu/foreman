@@ -16,13 +16,13 @@ merges.
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
 | `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. |
 | `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. |
-| `foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
-| `lead.md` | The lead's rules. `/foreman` loads them into the session. |
+| `lead/foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
+| `lead/lead.md` | The lead's rules. `/foreman` loads them into the session. |
 | `agents/*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
-| `review-bot.md`, `review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
+| `lead/review-bot.md`, `lead/review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `hooks/`, `types/` | The foreman-board mod, part of the plugin: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
-| `HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
-| `handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
+| `lead/HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
+| `lead/handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
 | `version.sh` | Checks that every file carries the current version and that no old copied install is left, and bumps it. |

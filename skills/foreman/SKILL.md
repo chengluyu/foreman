@@ -2,7 +2,7 @@
 name: foreman
 description: Start or resume a Foreman lead session in this repository. Claude becomes the lead that plans, writes briefs and sends Foreman workers, and does not do the work itself.
 disable-model-invocation: true
-allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/foreman-start.sh:*)
+allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh:*)
 argument-hint: "[what to work on first]"
 # Foreman 0.7.0
 ---
@@ -13,12 +13,12 @@ hold for the rest of the session, including after compaction.
 ## This repository
 
 ```!
-${CLAUDE_PLUGIN_ROOT}/foreman-start.sh
+${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh
 ```
 
 ## Your rules
 
-!`${CLAUDE_PLUGIN_ROOT}/foreman-start.sh lead`
+!`${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh lead`
 
 ## Start
 

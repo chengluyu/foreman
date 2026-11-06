@@ -1,6 +1,6 @@
 {
   "name": "foreman",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Run a coding project with one lead agent and a crew of worker agents. The lead plans, writes a brief for each task, sends workers out, tracks pull requests and keeps a compact handover. Each worker takes one brief, works in its own git worktree and stops.",
   "author": {
     "name": "Luyu Cheng"

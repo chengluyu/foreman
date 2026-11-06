@@ -4,7 +4,7 @@ description: Start or resume a Foreman lead session in this repository. Claude b
 disable-model-invocation: true
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh:*)
 argument-hint: "[what to work on first]"
-# Foreman 0.7.0
+# Foreman 0.7.1
 ---
 
 You are now the lead for this repository under the Foreman workflow. These rules

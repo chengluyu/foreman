@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Lead, Worker } from '../types'
 
-// Foreman 0.7.0 helper: a live board of the lead's workers, a one-line band with the
+// Foreman 0.7.1 helper: a live board of the lead's workers, a one-line band with the
 // lead's context and the number of workers running, and per-brief effort.
 
 const PANE = 'foreman-board'
@@ -21,6 +21,13 @@ const PRICES: Record<string, [number, number, number, number]> = {
   opus: [4, 8, 0.2, 20], sonnet: [2, 4, 0.2, 10], haiku: [1, 2, 0.1, 5],
 }
 const QUIET_MS = 4 * 60_000
+// $.state outlives a hot reload but not a plugin reload or a restart, so the board is
+// also saved to $.store per session, a few seconds after the last change.
+const SAVE_MS = 3_000
+const KEEP_SESSIONS = 12
+const KEEP_WORKERS = 300
+type Saved = { at: number; workers: Worker[]; lead: Lead; isActive: boolean }
+let saveArmed = false
 // The lead commands, /foreman, /foreman-create and /foreman-resume. A plugin install
 // records them as /foreman:foreman and so on, even when typed without the prefix.
 const LEAD_SKILL = /^(foreman:)?foreman(-create|-resume)?$/
@@ -58,19 +65,64 @@ function warnings(w: Worker, t: number): string[] {
   return out
 }
 
+const storeKey = async ($: EngineInterface) => 'session:' + (await $.session.id())
+
+async function save($: EngineInterface) {
+  const key = await storeKey($)
+  const saved: Saved = {
+    at: await $.clock.now(),
+    workers: await read($, workers),
+    lead: await read($, lead),
+    isActive: await read($, isActive),
+  }
+  await $.store.set(key, saved)
+  // Keep the newest few sessions so the store stays small.
+  const keys = (await $.store.keys()).filter(k => k.startsWith('session:') && k !== key)
+  if (keys.length >= KEEP_SESSIONS) {
+    const ages = await Promise.all(keys.map(async k => [k, ((await $.store.get(k)) as Saved | undefined)?.at ?? 0] as const))
+    ages.sort((a, b) => a[1] - b[1])
+    for (const [k] of ages.slice(0, keys.length - KEEP_SESSIONS + 1)) await $.store.delete(k)
+  }
+}
+
+function scheduleSave($: EngineInterface) {
+  if (saveArmed) return
+  saveArmed = true
+  $.clock.after(SAVE_MS, () => {
+    saveArmed = false
+    void save($).catch(() => undefined)
+  })
+}
+
+async function restore($: EngineInterface) {
+  const saved = (await $.store.get(await storeKey($))) as Saved | undefined
+  if (!saved || !Array.isArray(saved.workers)) return
+  if ((await read($, workers)).length === 0 && saved.workers.length > 0) {
+    await update($, workers, () => saved.workers)
+  }
+  if (!(await read($, lead)).window && saved.lead?.window) await update($, lead, () => saved.lead)
+  if (saved.isActive) await update($, isActive, () => true)
+}
+
 async function patch($: EngineInterface, id: string, fn: (w: Worker) => Worker) {
   const t = await $.clock.now()
   await update($, workers, list => {
     const all = list ?? []
     const i = all.findIndex(w => w.id === id)
     const next = fn(all[i] ?? blank(id, t))
-    return i >= 0 ? all.map((w, k) => (k === i ? next : w)) : [...all, next].slice(-300)
+    return i >= 0 ? all.map((w, k) => (k === i ? next : w)) : [...all, next].slice(-KEEP_WORKERS)
   })
+  scheduleSave($)
 }
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'foreman-board', description: 'Show the Foreman worker board' })
+    try {
+      await restore($)
+    } catch {
+      // Nothing saved for this session.
+    }
     // A resumed lead: the session ran a lead command before.
     try {
       const msgs = await $.session.messages()
@@ -87,10 +139,16 @@ export const register: Register = on => {
         await update($, now, () => t)
         const listed = await $.agent.list()
         const status = new Map(listed.map(a => [a.id, a.status]))
+        let changed = false
         await update($, workers, list => (list ?? []).map(w => {
           const st = status.get(w.id)
-          return w.done === null && st && st !== 'running' ? { ...w, done: t, status: st } : w
+          if (w.done === null && st && st !== 'running') {
+            changed = true
+            return { ...w, done: t, status: st }
+          }
+          return w
         }))
+        if (changed) scheduleSave($)
       })()
     })
     return next(e)
@@ -99,6 +157,7 @@ export const register: Register = on => {
   on('skill.prompt', async ($, e, next) => {
     if (!LEAD_SKILL.test(e.skill)) return next(e)
     await update($, isActive, () => true)
+    scheduleSave($)
     void $.ui.open({ id: PANE, title: 'Foreman workers' })
     return next(e)
   })
@@ -179,6 +238,7 @@ export const register: Register = on => {
   on('session.measure', async ($, e, next) => {
     const tokens = e.context.tokens ?? 0
     await update($, lead, () => ({ tokens, window: e.context.window }))
+    scheduleSave($)
     return next(e)
   })
 
@@ -208,7 +268,6 @@ export const register: Register = on => {
     const list = await read($, workers)
     const l = await read($, lead)
     const t = Math.max(await read($, now), 0) || Date.now()
-    const cols = e.props.bodyColumns ?? e.viewport?.columns ?? 80
     const running = list.filter(w => w.done === null).sort((a, b) => a.started - b.started)
     const done = list.filter(w => w.done !== null).sort((a, b) => (b.done ?? 0) - (a.done ?? 0))
     const byType = new Map<string, number>()
@@ -216,44 +275,79 @@ export const register: Register = on => {
     const rounds = new Map<number, number>()
     for (const w of list) if (w.type === 'foreman:responder' && w.pr) rounds.set(w.pr, (rounds.get(w.pr) ?? 0) + 1)
     const total = list.reduce((a, w) => a + w.usd, 0)
-    const row = (w: Worker) => {
+    const pct = l.window ? Math.round((l.tokens / l.window) * 100) : 0
+
+    const section = (label: string, n: number) => (
+      <Box marginTop={1}>
+        <Text size="footnote" weight="semibold" dimColor>{`${label.toUpperCase()} · ${n}`}</Text>
+      </Box>
+    )
+
+    const card = (w: Worker) => {
+      const isRunning = w.done === null
+      const ok = w.status === 'completed'
       const cap = MAX_TURNS[w.type]
       const age = (w.done ?? t) - w.started
-      return `${(short(w.type) + (w.effort ? ' ' + w.effort : '')).padEnd(17)} ${cut(w.desc, 34).padEnd(34)} ${String(w.steps).padStart(3)}${cap ? '/' + cap : ''} steps  ctx ${fK(w.ctx).padStart(5)}  ${fUsd(w.usd).padStart(6)}  ${fMin(age).padStart(4)}`
+      const warn = isRunning ? warnings(w, t) : []
+      const mark = isRunning ? '●' : ok ? '✓' : '✗'
+      const markColor = isRunning ? (warn.length ? 'warning' : 'suggestion') : ok ? 'success' : 'error'
+      const meta = [
+        short(w.type) + (w.effort ? ' · ' + w.effort : ''),
+        `${w.steps}${cap ? '/' + cap : ''} steps`,
+        `ctx ${fK(w.ctx)}`,
+        fMin(age),
+        ok || isRunning ? '' : w.status,
+      ].filter(Boolean).join('  ·  ')
+      return (
+        <Box key={w.id} flexDirection="column" marginTop={1}>
+          <Box flexDirection="row" gap={1}>
+            <Text color={markColor}>{mark}</Text>
+            <Box flexGrow={1} flexShrink={1}>
+              <Text wrap="truncate" weight={isRunning ? 'medium' : 'regular'} dimColor={!isRunning && ok}>{w.desc}</Text>
+            </Box>
+            <Text tabular dimColor={!isRunning}>{fUsd(w.usd)}</Text>
+          </Box>
+          <Box paddingLeft={2}>
+            <Text size="footnote" tabular dimColor wrap="truncate">{meta}</Text>
+          </Box>
+          {isRunning && (
+            <Box paddingLeft={2}>
+              <Text size="footnote" italic wrap="truncate" color="subtle">{w.lastTool || 'starting…'}</Text>
+            </Box>
+          )}
+          {warn.length > 0 && (
+            <Box paddingLeft={2}>
+              <Text size="footnote" color="warning" wrap="truncate">{'⚠ ' + warn.join(' · ')}</Text>
+            </Box>
+          )}
+        </Box>
+      )
     }
+
     return (
       <Box flexDirection="column">
-        <Text bold wrap="truncate">
-          {`Lead ${fK(l.tokens)}${l.window ? ' of ' + fK(l.window) : ''} · ${running.length} workers running`}
-        </Text>
-        <Text dimColor wrap="truncate">
-          {`Workers ${fUsd(total)} (est.): ${[...byType].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${fUsd(v)}`).join(', ') || 'none yet'}`}
+        <Box flexDirection="row" justifyContent="space-between" gap={2}>
+          <Text size="heading" weight="semibold" tabular wrap="truncate">
+            {`Lead ${fK(l.tokens)}${l.window ? ' / ' + fK(l.window) : ''}`}
+            {l.window ? <Text dimColor weight="regular">{`  ${pct}%`}</Text> : ''}
+          </Text>
+          <Text size="heading" weight="semibold" tabular>{fUsd(total)}</Text>
+        </Box>
+        <Text size="footnote" dimColor wrap="truncate">
+          {`${running.length} running · ${done.length} finished · ` +
+            ([...byType].sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${fUsd(v)}`).join(', ') || 'no cost yet') +
+            ' (est.)'}
         </Text>
         {rounds.size > 0 && (
-          <Text dimColor wrap="truncate">
+          <Text size="footnote" dimColor wrap="truncate">
             {'Review rounds: ' + [...rounds].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([n, k]) => `#${n} ${k}${k >= 5 ? ' (cap)' : ''}`).join(', ')}
           </Text>
         )}
-        <Text> </Text>
-        <Text bold>{`Running (${running.length})`}</Text>
-        {running.length === 0 && <Text dimColor>No workers running.</Text>}
-        {running.map(w => {
-          const warn = warnings(w, t)
-          return (
-            <Box key={w.id} flexDirection="column">
-              <Text wrap="truncate">{'● ' + row(w)}</Text>
-              <Text dimColor wrap="truncate">{'    ' + (w.lastTool || 'starting')}</Text>
-              {warn.length > 0 && <Text color="yellow" wrap="truncate">{'    ⚠ ' + warn.join(' · ')}</Text>}
-            </Box>
-          )
-        })}
-        <Text> </Text>
-        <Text bold>{`Finished (${done.length})`}</Text>
-        {done.slice(0, Math.max(3, Math.floor(cols / 10))).map(w => (
-          <Text key={w.id} dimColor={w.status === 'completed'} color={w.status === 'completed' ? undefined : 'red'} wrap="truncate">
-            {(w.status === 'completed' ? '✓ ' : '✗ ') + row(w)}
-          </Text>
-        ))}
+        {section('Running', running.length)}
+        {running.length === 0 && <Text size="footnote" dimColor>No workers running.</Text>}
+        {running.map(card)}
+        {done.length > 0 && section('Finished', done.length)}
+        {done.map(card)}
       </Box>
     )
   })

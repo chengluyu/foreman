@@ -6,6 +6,30 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.7.1 (2026-11-06)
+
+The worker board keeps its data across plugin reloads, lists every finished
+worker, and is laid out for the desktop pane. Only the board changed.
+
+### Changed
+- The board saves its workers, the lead's context and whether it is on to the
+  plugin store per session (the 12 newest sessions are kept), and restores
+  them when the session starts. Before, a plugin reload emptied the board.
+- The Finished list shows every finished worker. Before, it was capped by the
+  pane's width (`columns / 10`), so a narrow pane showed only a few.
+- Each worker is drawn as a title line (status mark, description, cost) with a
+  smaller line under it (type and effort, steps, context, age), instead of a
+  padded fixed-width row. The desktop pane draws it in its proportional font.
+
+### Upgrade from 0.7.0
+1. Run `claude plugin marketplace update foreman` and
+   `claude plugin update foreman@foreman`, then start a new session.
+
+### To check when testing
+- Reload plugins in a lead session with workers listed: the board keeps them.
+- Narrow the docked pane: the Finished count and the rows listed still match.
+- The desktop pane draws rows in its proportional font, cost aligned right.
+
 ## 0.7.0 (2026-11-04)
 
 Foreman installs as a Claude Code plugin, and builders open draft PRs. The plugin

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Foreman start script, run by the /foreman, /foreman-create and /foreman-resume skills.
+# Foreman start script, run by the /foreman:run, /foreman:create and /foreman:resume skills.
 #
 #   foreman-start.sh                  one HANDOVER.md per repository (no topics yet)
 #   foreman-start.sh create TOPIC     new topic: handovers/TOPIC.md plus handovers/_shared.md
@@ -62,7 +62,6 @@ settings() {
   }
   bot=$(setting 'Review bot')
   echo "- Review bot: ${bot:-none}"
-  echo "- Sonnet workers: $(setting 'Sonnet workers')"
   echo "- Builder: $(setting 'Builder')"
   case "$bot" in
     ''|none|None|'<'*) ;;
@@ -73,7 +72,7 @@ settings() {
 case $mode in
   single)
     if [ -d "$handovers" ]; then
-      stop "this repository keeps one handover per topic. Use /foreman-resume TOPIC, or /foreman-create TOPIC for a new one."
+      stop "this repository keeps one handover per topic. Use /foreman:resume TOPIC, or /foreman:create TOPIC for a new one."
     fi
     handover="$root/HANDOVER.md"
     rules="$handover"
@@ -100,21 +99,21 @@ case $mode in
     echo "- Topics: $(topics | tr '\n' ' ')"
     ;;
   create|resume)
-    [ -n "$topic" ] || stop "give a topic name: /foreman-$mode TOPIC."
+    [ -n "$topic" ] || stop "give a topic name: /foreman:$mode TOPIC."
     case $topic in
       *[!a-z0-9-]*|-*) stop "a topic is lowercase letters, digits and dashes, like \"browser\" or \"e2e-tests\"." ;;
     esac
     handover="$handovers/$topic.md"
     rules="$handovers/_shared.md"
     if [ "$mode" = create ]; then
-      [ ! -e "$handover" ] || stop "topic \"$topic\" already exists. Use /foreman-resume $topic to continue it."
+      [ ! -e "$handover" ] || stop "topic \"$topic\" already exists. Use /foreman:resume $topic to continue it."
       mkdir -p "$handovers"
       exclude 'handovers/'
       [ -f "$rules" ] || { cp "$dir/handover-templates/shared.md" "$rules"; shared_state="just created from the template; its Standing rules are still empty"; }
       sed "s/<topic>/$topic/" "$dir/handover-templates/topic.md" > "$handover"
       state="just created from the template"
     else
-      [ -f "$handover" ] || stop "no topic \"$topic\". Use /foreman-create $topic to start it."
+      [ -f "$handover" ] || stop "no topic \"$topic\". Use /foreman:create $topic to start it."
       [ -f "$rules" ] || { mkdir -p "$handovers"; cp "$dir/handover-templates/shared.md" "$rules"; shared_state="just created from the template; its Standing rules are still empty"; }
       state="exists"
     fi

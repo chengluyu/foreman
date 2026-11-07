@@ -9,9 +9,8 @@ every call. Keep it out of git.
 
 ## Standing rules
 
-Foreman settings for this repository (the start script reads the first three):
+Foreman settings for this repository (the start script reads the first two):
 - Review bot: none
-- Sonnet workers: allowed
 - Builder: foreman:builder
 - Worker rules, copied into every brief:
   - <commit style, test commands, anything that must never happen>

@@ -6,7 +6,7 @@
 set -eu
 dir=$(cd "$(dirname "$0")" && pwd)
 v=$(cat "$dir/VERSION")
-stamped="$dir/lead/lead.md $dir/lead/review-bot.md $dir/FOREMAN.md $dir/agents/*.md $dir/skills/foreman/SKILL.md $dir/skills/foreman-create/SKILL.md $dir/skills/foreman-resume/SKILL.md $dir/hooks/register.tsx"
+stamped="$dir/lead/lead.md $dir/lead/review-bot.md $dir/FOREMAN.md $dir/agents/*.md $dir/skills/run/SKILL.md $dir/skills/create/SKILL.md $dir/skills/resume/SKILL.md $dir/hooks/register.tsx"
 pattern='Foreman [0-9]+\.[0-9]+\.[0-9]+'
 
 stamp_of() { grep -Eo "$pattern" "$1" | head -n 1; }

@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Lead, Worker } from '../types'
 
-// Foreman 0.7.1 helper: a live board of the lead's workers, a one-line band with the
+// Foreman 0.8.0 helper: a live board of the lead's workers, a one-line band with the
 // lead's context and the number of workers running, and per-brief effort.
 
 const PANE = 'foreman-board'
@@ -28,10 +28,10 @@ const KEEP_SESSIONS = 12
 const KEEP_WORKERS = 300
 type Saved = { at: number; workers: Worker[]; lead: Lead; isActive: boolean }
 let saveArmed = false
-// The lead commands, /foreman, /foreman-create and /foreman-resume. A plugin install
-// records them as /foreman:foreman and so on, even when typed without the prefix.
-const LEAD_SKILL = /^(foreman:)?foreman(-create|-resume)?$/
-const LEAD_MARK = /command-name>\/(foreman:)?foreman(-create|-resume)?<|^\/(foreman:)?foreman(-create|-resume)?(\s|$)/m
+// The lead commands, /foreman:run, /foreman:create and /foreman:resume. They may also be
+// typed without the prefix.
+const LEAD_SKILL = /^(foreman:)?(run|create|resume)$/
+const LEAD_MARK = /command-name>\/(foreman:)?(run|create|resume)<|^\/(foreman:)?(run|create|resume)(\s|$)/m
 
 const short = (type: string) => type.replace(/^foreman:/, '')
 const fK = (n: number) => (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.round(n / 1e3) + 'k')

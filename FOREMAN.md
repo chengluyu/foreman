@@ -1,6 +1,6 @@
 # Foreman
 
-Version: Foreman 0.7.1. Changes are listed in `CHANGELOG.md`.
+Version: Foreman 0.8.0. Changes are listed in `CHANGELOG.md`.
 
 A way to run a coding project with one lead agent and a crew of worker agents,
 while paying as little as possible for them.
@@ -14,15 +14,15 @@ merges.
 | File | What it is |
 |---|---|
 | `FOREMAN.md` | This guide. Read it once; it explains the rules and why they save money. |
-| `skills/foreman/SKILL.md` | The `/foreman` command that starts a lead session in any repository. |
-| `skills/foreman-create/`, `skills/foreman-resume/` | `/foreman-create TOPIC` and `/foreman-resume TOPIC`: one handover per line of work. |
+| `skills/run/SKILL.md` | The `/foreman:run` command that starts a lead session in any repository. |
+| `skills/create/`, `skills/resume/` | `/foreman:create TOPIC` and `/foreman:resume TOPIC`: one handover per line of work. |
 | `lead/foreman-start.sh` | Run by the skills: finds the repository's handover or topic handover, creates it on first use, and reads its settings. |
-| `lead/lead.md` | The lead's rules. `/foreman` loads them into the session. |
+| `lead/lead.md` | The lead's rules. `/foreman:run` loads them into the session. |
 | `agents/*.md` | The worker profiles: builder, investigator, clerk, scout, and the optional responder. |
 | `lead/review-bot.md`, `lead/review-wait.sh` | Optional: lead rules and a watcher for repositories where a review bot such as Codex must approve each PR. |
 | `hooks/`, `types/` | The foreman-board mod, part of the plugin: a live worker board, a band with the lead's context and the workers running, and per-brief effort. See "The foreman-board mod". |
-| `lead/HANDOVER.md` | The single-handover template. `/foreman` copies it into each repository on first use. |
-| `lead/handover-templates/` | The topic and shared-rules templates that `/foreman-create` copies. |
+| `lead/HANDOVER.md` | The single-handover template. `/foreman:run` copies it into each repository on first use. |
+| `lead/handover-templates/` | The topic and shared-rules templates that `/foreman:create` copies. |
 | `VERSION`, `CHANGELOG.md` | The current version, and what changed in each version. |
 | `kimi/`, `kimi.plugin.json` | The Kimi Code edition, with its own guide, versions and changelog, and its plugin manifest. Nothing in this guide applies to it. |
 | `version.sh` | Checks that every file carries the current version and that no old copied install is left, and bumps it. |
@@ -186,8 +186,8 @@ Once per machine; nothing is needed per project.
    ```bash
    claude plugin install foreman@foreman
    ```
-   That installs the `/foreman`, `/foreman-create` and `/foreman-resume` commands
-   (also reachable as `/foreman:foreman` and so on) and the workers `foreman:builder`,
+   That installs the `/foreman:run`, `/foreman:create` and `/foreman:resume` commands
+   and the workers `foreman:builder`,
    `foreman:investigator`, `foreman:clerk`, `foreman:scout` and `foreman:responder`.
    If you copied an earlier version into `~/.claude/skills/` and `~/.claude/agents/`,
    delete those copies first, and change `foreman-builder` to `foreman:builder` in
@@ -220,9 +220,9 @@ Once per machine; nothing is needed per project.
 
 In any repository, start a new session and type:
 ```text
-/foreman
+/foreman:run
 ```
-or `/foreman <what to work on first>`. The command:
+or `/foreman:run <what to work on first>`. The command:
 - finds the repository's main checkout, which every worktree shares, and its
   `HANDOVER.md`. On first use it creates the file from the template and keeps it
   out of git through `.git/info/exclude`;
@@ -234,14 +234,13 @@ After a compaction, Claude Code re-attaches the command's content, so the lead k
 its rules. The first time in a repository, the lead asks for the handover's
 Standing rules, the repository's Foreman settings:
 - `Review bot`: `none`, or `Codex` to load the review-bot rules.
-- `Sonnet workers`: `allowed`, or `not allowed` to run clerks and scouts on Opus.
 - `Builder`: `foreman:builder`, or a project's own builder profile.
 - Worker rules, which the lead copies into every brief: commit style, test commands,
   and anything that must never happen, such as agent names in branches or commits.
 
 ## The daily loop
 
-1. Start a lead session with `/foreman`. Pick the model and effort now and keep
+1. Start a lead session with `/foreman:run`. Pick the model and effort now and keep
    them for the session.
 2. Say what you want. The lead splits it into tasks, writes the briefs and tells
    you the plan in a few lines.
@@ -269,7 +268,7 @@ things:
 - **Effort per brief:** applies a brief's `Effort:` line to that worker.
 
 It switches on in a session that ran
-`/foreman`, `/foreman-create` or `/foreman-resume`, or once a Foreman worker is
+`/foreman:run`, `/foreman:create` or `/foreman:resume`, or once a Foreman worker is
 sent, and tracks only Foreman workers. It never refuses a spawn.
 
 ## Briefs
@@ -363,7 +362,7 @@ Rules, in `review-bot.md`:
   lead stops and lists the open threads for you.
 
 To turn it on in a repository:
-1. Set `- Review bot: Codex` in the handover's Standing rules. The next `/foreman`
+1. Set `- Review bot: Codex` in the handover's Standing rules. The next `/foreman:run`
    loads the rules; in a running session, tell the lead to read `review-bot.md`.
 2. If the bot isn't Codex, or you want another round cap, say so in the Standing
    rules too: the bot, its trigger comment, and `BOT` and `PASS_TEXT` for the
@@ -417,18 +416,18 @@ When a repository has several lines of work that barely touch, give each its own
 handover instead of one long file. Every lead re-reads its whole handover on every
 call, so a lead should carry only its own line.
 
-- `/foreman-create browser` makes `handovers/browser.md` and, the first time,
+- `/foreman:create browser` makes `handovers/browser.md` and, the first time,
   `handovers/_shared.md`, in the main checkout, kept out of git as a folder.
-- `/foreman-resume browser` continues it. Use it when you retire a lead and start
+- `/foreman:resume browser` continues it. Use it when you retire a lead and start
   a new one: the handover belongs to the topic, not the session. The new lead
   replaces the `Lead:` line; it does not look for the old session.
 - A topic is lowercase letters, digits and dashes. A wrong or missing name prints a
   `STOP:` line with the topics that exist; nothing is created by accident.
 - `_shared.md` holds what is true for every topic: the Standing rules (review bot,
-  Sonnet, builder, worker rules), the merge order across topics, who is using the
+  builder, worker rules), the merge order across topics, who is using the
   machine (e2e focus, clipboard, ports) and the environment. A lead reads its topic
   and `_shared.md`, and never another topic's file.
-- Once `handovers/` exists, plain `/foreman` stops and points to the two commands.
+- Once `handovers/` exists, plain `/foreman:run` stops and points to the two commands.
   Repositories without it keep one `HANDOVER.md` and work as before.
 - To move an existing `HANDOVER.md` over: create the topic, move the topic's
   sections across and the Standing rules and Environment into `_shared.md`, and
@@ -442,7 +441,7 @@ call, so a lead should carry only its own line.
   about 0.1M.
 - **One handover per repository, in its main checkout.** Sessions in the app run in
   their own worktrees, so a relative `HANDOVER.md` would be a different file each
-  time. `/foreman` prints the absolute path, and the lead always uses it.
+  time. `/foreman:run` prints the absolute path, and the lead always uses it.
 - **Keep `HANDOVER.md` under about 5k tokens,** because every line is re-read on
   every call. Record state, not history: what is running, open PRs, the queue,
   decisions waiting on you, standing rules.
@@ -476,7 +475,7 @@ makes the next estimates better; story points added nothing here.
 Foreman changes as you test it, so every measurement needs to say which version it
 measured.
 - `VERSION` holds the current version. `lead.md`, `review-bot.md`, this guide, the
-  `/foreman` skill and each worker profile carry it as "Foreman x.y.z", so an
+  `/foreman:run` skill and each worker profile carry it as "Foreman x.y.z", so an
   installed copy shows which version it is. The lead writes the version into
   `HANDOVER.md`.
 - Until 1.0.0, any change that can alter behaviour or cost (a rule, a prompt, a
@@ -487,9 +486,9 @@ measured.
   `CHANGELOG.md`, commit, tag the commit `v0.3.0` and push. Then update the plugin
   (see "One-time setup") and start new sessions. `git diff v0.2.0
   v0.3.0` shows exactly what changed between two tested versions. Profiles load
-  when a session starts, so a running session keeps the old version. `/foreman`
+  when a session starts, so a running session keeps the old version. `/foreman:run`
   reads `lead.md`, `review-bot.md` and the scripts from the installed plugin, so
-  after an update those take effect at the next `/foreman`.
+  after an update those take effect at the next `/foreman:run`.
 - Run `./version.sh` before a test to check the stamps and to find copies of the
   profiles and skills left from installing by hand.
 - Compare versions on whole days of work with the checks under Measuring, and
@@ -497,7 +496,7 @@ measured.
 
 ## Prompts
 
-Start a lead session: `/foreman`, or `/foreman <what to work on first>`.
+Start a lead session: `/foreman:run`, or `/foreman:run <what to work on first>`.
 
 Night shift (compact the lead first if it is over about 170k):
 ```text

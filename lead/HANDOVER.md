@@ -16,9 +16,8 @@ the title of lead.md>
 
 ## Standing rules
 
-Foreman settings for this repository (the /foreman skill reads the first three):
+Foreman settings for this repository (the /foreman:run skill reads the first two):
 - Review bot: none
-- Sonnet workers: allowed
 - Builder: foreman:builder
 - Worker rules, copied into every brief:
   - <commit style, test commands, anything that must never happen>

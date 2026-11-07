@@ -6,6 +6,28 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.8.0 (2026-11-08)
+
+The lead commands lose the doubled plugin name, and the Sonnet-workers setting
+is gone.
+
+### Changed
+- The commands are `/foreman:run`, `/foreman:create` and `/foreman:resume`. Before,
+  the skills were named `foreman`, `foreman-create` and `foreman-resume`, and Claude
+  Code showed them as `foreman:foreman-resume` and so on.
+- The lead no longer asks whether Sonnet workers are allowed. Clerks and scouts
+  always run on Sonnet. The `Sonnet workers` line in a handover is ignored.
+
+### Upgrade from 0.7.1
+1. Run `claude plugin marketplace update foreman` and
+   `claude plugin update foreman@foreman`, then start a new session.
+2. Type `/foreman:run` where you typed `/foreman`, `/foreman:create` and
+   `/foreman:resume` for the other two.
+
+### To check when testing
+- The slash menu lists `foreman:run`, `foreman:create` and `foreman:resume` only.
+- The worker board still turns on after `/foreman:run`.
+
 ## 0.7.1 (2026-11-06)
 
 The worker board keeps its data across plugin reloads, lists every finished

@@ -1,4 +1,4 @@
-# Foreman 0.7.1: rules for the lead
+# Foreman 0.8.0: rules for the lead
 
 You are the lead. You plan, write briefs, send workers out, track pull requests
 (PRs) and keep HANDOVER.md. You do not do the work yourself. The reasons behind
@@ -21,8 +21,6 @@ stop. Don't send workers or change anything until they say to go ahead.
     merge approved PRs, run the full test suite.
   - `foreman:scout`: one factual question, answered in 10 lines with sources.
     Use it before writing a brief that depends on outside facts.
-- If the handover says Sonnet workers aren't allowed, pass `model: "opus"` when you
-  send a clerk or a scout.
 - Don't poll workers; their reports wake you. Keep your updates to a few lines.
 
 ## Briefs

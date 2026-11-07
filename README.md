@@ -52,7 +52,7 @@ down as rules the agents load.
 
 ## What Foreman is
 
-You type `/foreman` in a session, in any repository, and that session becomes the
+You type `/foreman:run` in a session, in any repository, and that session becomes the
 lead. The lead plans, writes a brief for each task and sends a worker. It does not
 write code, debug or run tests. Each worker takes one brief, works in its own
 worktree, hands back one result and stops.
@@ -81,8 +81,8 @@ The rules behind them:
   shared by every worktree and kept out of git. A new lead starts from it. It also
   holds the repository's settings and the rules the lead copies into every brief,
   because workers can't see the lead's memory. A repository with several separate
-  lines of work gets one handover per topic (`/foreman-create TOPIC`,
-  `/foreman-resume TOPIC`) and one shared rules file.
+  lines of work gets one handover per topic (`/foreman:create TOPIC`,
+  `/foreman:resume TOPIC`) and one shared rules file.
 - **Sonnet for short jobs only.** Sonnet costs half as much per token, except for
   cache reads, which cost the same. Replaying my chats, that came to 24% less on
   long jobs and 43% less on short ones, so only clerks and scouts use it.
@@ -137,11 +137,11 @@ Give workers the one-hour cache in `~/.claude/settings.json`:
 Then start a new session in any repository and type:
 
 ```text
-/foreman
+/foreman:run
 ```
 
-The first time in a repository, the lead asks four things: whether a review bot
-is in use, whether Sonnet workers are allowed, which builder profile to use, and
+The first time in a repository, the lead asks three things: whether a review bot
+is in use, which builder profile to use, and
 which rules every worker must follow. It writes the answers into the handover.
 After that it tells you in five lines where things stand.
 

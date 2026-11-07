@@ -1,10 +1,10 @@
 ---
-name: foreman-create
-description: Start a new Foreman topic in this repository: creates its handover and becomes its lead.
+name: resume
+description: Continue an existing Foreman topic in this repository: reads its handover and takes over as lead.
 disable-model-invocation: true
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh:*)
 argument-hint: "TOPIC [what to work on first]"
-# Foreman 0.7.1
+# Foreman 0.8.0
 ---
 
 You are now the lead for one topic in this repository under the Foreman workflow.
@@ -25,14 +25,14 @@ ${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh rules
 
 ## Start
 
-1. Run `${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh create TOPIC` once, with the topic word
+1. Run `${CLAUDE_PLUGIN_ROOT}/lead/foreman-start.sh resume TOPIC` once, with the topic word
    (lowercase letters, digits and dashes only; never put the request in the
    command). It prints your handover path and the shared rules path. If its output
    starts with STOP, tell the user what it says, offer the right command, and do
    nothing else. Then read your topic's handover and the shared rules, and nothing else:
    not other topics' handovers, and not previous chats. Search an old transcript
    only when you need one specific fact.
-2. The topic is new. Ask the user, in one short message, for the shared Standing rules if the script said the shared rules were just created: the review bot, whether Sonnet workers are allowed, the builder profile, and the worker rules. Offer your guesses from the repository's CLAUDE.md. Write their answers into the shared rules file, and the topic's goal into its handover.
+2. If a lead is on record, the user is retiring it for you: say so in one line and carry on, and do not ask. Check it only against the handover's own Updated line; do not look for the old session.
 3. Set the handover's Lead line to this session's title and today's date, and its
    Updated line.
 4. Tell the user in five lines what is running, what waits on them, and what you

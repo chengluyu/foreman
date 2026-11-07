@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Lead, Worker } from '../types'
 
-// Foreman 0.8.0 helper: a live board of the lead's workers, a one-line band with the
+// Foreman 0.8.1 helper: a live board of the lead's workers, a one-line band with the
 // lead's context and the number of workers running, and per-brief effort.
 
 const PANE = 'foreman-board'
@@ -33,6 +33,14 @@ let saveArmed = false
 const LEAD_SKILL = /^(foreman:)?(run|create|resume)$/
 const LEAD_MARK = /command-name>\/(foreman:)?(run|create|resume)<|^\/(foreman:)?(run|create|resume)(\s|$)/m
 
+// Each profile's own effort, from agents/*.md; a brief's "Effort:" line overrides it.
+const PROFILE_EFFORT: Record<string, string> = {
+  'foreman:builder': 'medium', 'foreman:investigator': 'high', 'foreman:clerk': 'medium',
+  'foreman:scout': 'medium', 'foreman:responder': 'high',
+}
+const fModel = (m: string) => m.replace(/^claude-/, '').replace(/-\d{8}$/, '').replace(/-(\d+)-(\d+)$/, ' $1.$2').replace(/-/g, ' ')
+let restored = false
+
 const short = (type: string) => type.replace(/^foreman:/, '')
 const fK = (n: number) => (n >= 1e6 ? (n / 1e6).toFixed(2) + 'M' : Math.round(n / 1e3) + 'k')
 const fUsd = (v: number) => '$' + v.toFixed(2)
@@ -50,7 +58,7 @@ const isEffort = (v: string | undefined): v is (typeof EFFORTS)[number] => EFFOR
 
 function blank(id: string, t: number): Worker {
   return {
-    id, type: '?', desc: id, model: '', started: t, last: t, done: null, status: 'running',
+    id, type: '?', desc: 'worker ' + id.slice(0, 6), model: '', started: t, last: t, done: null, status: 'running',
     steps: 0, ctx: 0, peak: 0, usd: 0, lastTool: '', lastCmd: '', repeats: 0, pr: null, effort: '',
   }
 }
@@ -105,6 +113,16 @@ async function restore($: EngineInterface) {
 }
 
 async function patch($: EngineInterface, id: string, fn: (w: Worker) => Worker) {
+  // After a plugin reload the board is empty while workers keep running; their spawn
+  // records are in the store, so load them before a step makes a nameless entry.
+  if (!restored) {
+    restored = true
+    try {
+      await restore($)
+    } catch {
+      // Nothing saved.
+    }
+  }
   const t = await $.clock.now()
   await update($, workers, list => {
     const all = list ?? []
@@ -117,6 +135,7 @@ async function patch($: EngineInterface, id: string, fn: (w: Worker) => Worker) 
 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
+    restored = true
     await $.command.register({ name: 'foreman-board', description: 'Show the Foreman worker board' })
     try {
       await restore($)
@@ -179,7 +198,7 @@ export const register: Register = on => {
     if (r.agentId) {
       const t = await $.clock.now()
       const pr = /#(\d+)/.exec(e.description)?.[1]
-      const effort = /^Effort:\s*(low|medium|high|xhigh|max)\b/im.exec(e.prompt)?.[1]?.toLowerCase() ?? ''
+      const effort = /^Effort:\s*(low|medium|high|xhigh|max)\b/im.exec(e.prompt)?.[1]?.toLowerCase() ?? PROFILE_EFFORT[type] ?? ''
       await patch($, r.agentId, w => ({
         ...w, type, desc: e.description, model: r.model ?? '', started: t, last: t,
         pr: pr ? Number(pr) : null, effort,
@@ -292,7 +311,9 @@ export const register: Register = on => {
       const mark = isRunning ? '●' : ok ? '✓' : '✗'
       const markColor = isRunning ? (warn.length ? 'warning' : 'suggestion') : ok ? 'success' : 'error'
       const meta = [
-        short(w.type) + (w.effort ? ' · ' + w.effort : ''),
+        w.type === '?' ? 'unknown type' : short(w.type),
+        w.model ? fModel(w.model) : '',
+        w.effort,
         `${w.steps}${cap ? '/' + cap : ''} steps`,
         `ctx ${fK(w.ctx)}`,
         fMin(age),

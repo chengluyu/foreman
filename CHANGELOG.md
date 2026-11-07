@@ -6,6 +6,28 @@ bump means behaviour or cost may change; a patch bump means it should not.
 Each entry lists what changed, how to upgrade, and what to check when testing.
 After a test, add what you measured under Results.
 
+## 0.8.1 (2026-11-08)
+
+The worker board survives a plugin reload and shows each worker's model and effort.
+Only the board changed.
+
+### Changed
+- After `/reload-plugins`, the board reloads its saved workers on the first update.
+  Before, workers running at the reload got entries named by their raw agent ID,
+  with type `?`.
+- A worker with no spawn record shows as `worker abc123` and `unknown type`.
+- Each worker's second line shows its model and effort, such as
+  `builder · opus 5.5 · medium`. Effort comes from the brief's `Effort:` line, or
+  else the profile's own.
+
+### Upgrade from 0.8.0
+1. Run `claude plugin marketplace update foreman` and
+   `claude plugin update foreman@foreman`, then start a new session.
+
+### To check when testing
+- Run `/reload-plugins` with a worker running: its card keeps its name and type.
+- Each card shows model and effort.
+
 ## 0.8.0 (2026-11-08)
 
 The lead commands lose the doubled plugin name, and the Sonnet-workers setting
